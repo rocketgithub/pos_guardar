@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="LoadOrderButton">
+        <div class='control-button js_load_order'>
+            <i class='fa fa-shopping-bag' /> Cargar
+        </div>
+    </t>
+
+    <t t-name="SaveOrderButton">
+        <div class='control-button js_save_order'>
+            <i class='fa fa-shopping-bag' /> Guardar
+        </div>
+    </t>
+
+    <t t-name="LoadOrderSessionButton">
+        <div class='control-button js_load_order_session'>
+            <i class='fa fa-shopping-bag' /> Cargar sesion
+        </div>
+    </t>
+
+</templates>
