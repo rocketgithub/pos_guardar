@@ -7,8 +7,8 @@ class PosOrder(models.Model):
     _inherit = 'pos.order'
 
     def guardar_pedido_session_alterna(self,orden,orderline):
-        orden_id = self.env['pos.order'].sudo().create(orden[0])
-        for linea in orderline[0]:
+        orden_id = self.env['pos.order'].sudo().create(orden)
+        for linea in orderline:
             linea['order_id'] = orden_id.id
             linea_id = self.env['pos.order.line'].sudo().create(linea)
         return orden_id.name
@@ -16,16 +16,16 @@ class PosOrder(models.Model):
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
         orders = self.env['pos.order'].search([['id', '=', orden_id]])
         logging.warn(restaurante)
-        if restaurante[0]:
+        if restaurante:
             for order in orders:
-                order.sudo().write({'partner_id': orden[0]['partner_id'], 'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                order.sudo().write({'partner_id': orde['partner_id'], 'user_id':orde['user_id'],'customer_count': orden['customer_count']})
         else:
             for order in orders:
-                order.sudo().write({'partner_id': orden[0]['partner_id'], 'user_id':orden[0]['user_id']})
+                order.sudo().write({'partner_id': orden['partner_id'], 'user_id':orden['user_id']})
         lineas = self.env['pos.order.line'].search([['order_id', 'in', orden_id]])
         lineas.sudo().unlink()
-        for linea in orderline[0]:
-            linea['order_id'] = orden_id[0]
+        for linea in orderline:
+            linea['order_id'] = orden_id
             linea_id = self.env['pos.order.line'].sudo().create(linea)
         return True
 

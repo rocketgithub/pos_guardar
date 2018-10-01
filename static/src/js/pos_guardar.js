@@ -70,7 +70,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': this.pos.get_cashier().id
-                }                
+                }
             }
 
             var order_id = order.attributes.order_id;
@@ -100,7 +100,7 @@ screens.define_action_button({
     'widget': SaveOrderButton,
     'condition': function(){
         return this.pos.config.save_order_option;
-        
+
     },
 });
 
@@ -142,7 +142,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                         var orders_list = [];
                                         var i=0;
                                         for(i = 0; i < orders.length; i++){
-                                            orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],}); 
+                                            orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],});
                                         }
                                         self.select_order(orders_list);
                                 });
@@ -150,7 +150,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                 var orders_list = [];
                                 var i=0;
                                 for(i = 0; i < orders.length; i++){
-                                    orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],}); 
+                                    orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],});
                                 }
                                 self.select_order(orders_list);
                             }
@@ -168,7 +168,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                         var orders_list = [];
                                         var i=0;
                                         for(i = 0; i < orders.length; i++){
-                                            orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],}); 
+                                            orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
                                         }
                                         self.select_order(orders_list);
                                 });
@@ -176,7 +176,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                 var orders_list = [];
                                 var i=0;
                                 for(i = 0; i < orders.length; i++){
-                                    orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],}); 
+                                    orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
                                 }
                                 self.select_order(orders_list);
                             }
@@ -265,35 +265,22 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
         var db = this.pos.db;
         var Restaurant = new Model('restaurant.table');
         var RestaurantFloor = new Model('restaurant.floor');
-        Restaurant.query(['color','floor_id','height','id','name','position_h','position_v','seats','shape','width'])
-         .filter([['id','=',order[0].table_id[0]]])
-         .limit(15)
-         .all().then(function (result) {
-
-            RestaurantFloor.query(['id','name','sequence'])
-             .filter([['id','=',result[0].floor_id[0]]])
-             .limit(15)
-             .all().then(function (floor) {
-                var producto_id;
-                var cantidad;
-                result[0].floor= floor[0];
-                self.pos.set_table(result[0]);
-                var orden = self.pos.get_order();
-                orden.set_customer_count(order[0].customer_count);
-                self.pos.set_cashier({'id': order[0].user_id[0]});
-                orden.set_client(db.get_partner_by_id(order[0]['partner_id'][0]));
-                self.pos.set_order(orden);
-                for (var i=0; i< orderslines.length; i++){
-                    producto_id = orderslines[i]['product_id'][0];
-                    cantidad = orderslines[i]['qty'];
-                    var producto = db.get_product_by_id(producto_id);
-                    producto.extras_id = 0;
-                    orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
-                    orden.set_order_id(orden_id_cargada);
-                }
-
-            });
-        });
+        var producto_id;
+        var cantidad;
+        self.pos.set_table(self.pos.tables_by_id[order[0].table_id[0]]);
+        var orden = self.pos.get_order();
+        orden.set_customer_count(order[0].customer_count);
+        self.pos.set_cashier({'id': order[0].user_id[0]});
+        orden.set_client(db.get_partner_by_id(order[0]['partner_id'][0]));
+        self.pos.set_order(orden);
+        for (var i=0; i< orderslines.length; i++){
+            producto_id = orderslines[i]['product_id'][0];
+            cantidad = orderslines[i]['qty'];
+            var producto = db.get_product_by_id(producto_id);
+            producto.extras_id = 0;
+            orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+            orden.set_order_id(orden_id_cargada);
+        }
     }
 });
 
@@ -316,7 +303,7 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
         var self = this;
         var order = this.pos.get_order();
         var gui = this.pos.gui;
-    
+
         gui.show_popup('textinput',{
             'title': 'Ingrese sesión',
             'confirm': function(val) {
@@ -328,7 +315,7 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
                     var sessions_list = [];
                     var i=0;
                     for(i = 0; i < sessions.length; i++){
-                        sessions_list.push({'label': sessions[i]['name'],'item':sessions[i]['id'],}); 
+                        sessions_list.push({'label': sessions[i]['name'],'item':sessions[i]['id'],});
                     }
                     self.select_session(sessions_list);
 
@@ -338,7 +325,6 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
     },
     select_session: function(sessions_list){
         var self = this;
-        // var orden = this.pos.get_order();
         var gui = this.pos.gui;
         var db = this.pos.db;
         var ordenes =[];
@@ -363,7 +349,7 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
                         var cantidad_vendida = [];
                         var precio_unitario =0;
                         var cantidad =0;
-                        var posicion_orden =0; 
+                        var posicion_orden =0;
                         for (i=0; i < order.length; i++){
                             var a = i;
                             ordenes.push(order);
@@ -380,8 +366,6 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
 
                             });
                         }
-                        location.reload();
-
                     });
                 }else{
                     var Order = new Model('pos.order');
@@ -427,43 +411,27 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
     agregar_orden: function(order,orderslines,a){
         var self = this;
         var db = this.pos.db;
-
-        var Restaurant = new Model('restaurant.table');
-        Restaurant.query(['color','floor_id','height','id','name','position_h','position_v','seats','shape','width'])
-         .filter([['id','=',order[a].table_id[0]]])
-         .limit(15)
-         .all().then(function (result) {
-
-            var RestaurantFloor = new Model('restaurant.floor');
-            RestaurantFloor.query(['id','name','sequence'])
-             .filter([['id','=',result[0].floor_id[0]]])
-             .limit(15)
-             .all().then(function (floor) {
-                var es_cargada = 1;
-                var producto_id;
-                var cantidad;
-                var orden_id_cargada = order[a].id
-                result[0].floor= floor[0];
-                self.pos.set_table(result[0]);
-                var orden = self.pos.get_order();
-                orden.set_customer_count(order[a].customer_count);
-                self.pos.set_cashier({'id': order[a].user_id[0]});
-                orden.set_client(db.get_partner_by_id(order[a]['partner_id'][0]));
-                self.pos.set_order(orden);
-                orden.set_order_id(orden_id_cargada);
-                orden.orden_id_cargada = orden_id_cargada
-                for (var i=0; i< orderslines.length; i++){
-                    producto_id = orderslines[i]['product_id'][0];
-                    cantidad = orderslines[i]['qty'];
-                    var producto = db.get_product_by_id(producto_id)
-                    producto.qty = cantidad;
-                    producto.extras_id = 0;
-                    orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
-                }
-            });
-
-        });
-
+        var es_cargada = 1;
+        var producto_id;
+        var cantidad;
+        var orden_id_cargada = order[a].id
+        self.pos.set_table(self.pos.tables_by_id[order[a].table_id[0]]);
+        self.pos.add_new_order();
+        var orden = self.pos.get_order();
+        orden.set_customer_count(order[a].customer_count);
+        self.pos.set_cashier({'id': order[a].user_id[0]});
+        orden.set_client(db.get_partner_by_id(order[a]['partner_id'][0]));
+        self.pos.set_order(orden);
+        orden.set_order_id(orden_id_cargada);
+        orden.orden_id_cargada = orden_id_cargada
+        for (var i=0; i< orderslines.length; i++){
+            producto_id = orderslines[i]['product_id'][0];
+            cantidad = orderslines[i]['qty'];
+            var producto = db.get_product_by_id(producto_id)
+            producto.qty = cantidad;
+            producto.extras_id = 0;
+            orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+        }
         new Model("pos.order").call("unlink_order",[[],order[a].id]).then(function(result){
 
         });
@@ -482,7 +450,7 @@ screens.define_action_button({
 models.PosModel = models.PosModel.extend({
     push_and_invoice_order: function(order){
         var self = this;
-        var invoiced = new $.Deferred(); 
+        var invoiced = new $.Deferred();
         var orden = self.get_order();
         if(!order.get_client()){
             invoiced.reject({code:400, message:'Missing Customer', data:{}});
@@ -509,9 +477,9 @@ models.PosModel = models.PosModel.extend({
             });
 
             // on success, get the order id generated by the server
-            transfer.pipe(function(order_server_id){  
+            transfer.pipe(function(order_server_id){
                 // generate the pdf and download it
-                self.chrome.do_action('point_of_sale.pos_invoice_report',{additional_context:{ 
+                self.chrome.do_action('point_of_sale.pos_invoice_report',{additional_context:{
                     active_ids:order_server_id,
                 }}).done(function () {
                     invoiced.resolve();
