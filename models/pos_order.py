@@ -18,11 +18,11 @@ class PosOrder(models.Model):
         logging.warn(restaurante)
         if restaurante:
             for order in orders:
-                order.sudo().write({'partner_id': orde['partner_id'], 'user_id':orde['user_id'],'customer_count': orden['customer_count']})
+                order.sudo().write({'partner_id': orden['partner_id'], 'user_id':orden['user_id'],'customer_count': orden['customer_count']})
         else:
             for order in orders:
                 order.sudo().write({'partner_id': orden['partner_id'], 'user_id':orden['user_id']})
-        lineas = self.env['pos.order.line'].search([['order_id', 'in', orden_id]])
+        lineas = self.env['pos.order.line'].search([['order_id', '=', orden_id]])
         lineas.sudo().unlink()
         for linea in orderline:
             linea['order_id'] = orden_id
