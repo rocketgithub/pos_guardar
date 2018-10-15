@@ -122,7 +122,6 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                             args: [[['id', '=', line]], ['id','partner_id','user_id','table_id','customer_count']],
                         })
                         .then(function (partner){
-                            console.log(partner)
                             cliente = partner
                             orden_id_cargada = partner[0].id;
                             orden.set_customer_count(partner[0].customer_count);
@@ -163,6 +162,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                     var cantidad;
                                     var producto = db.get_product_by_id(orderslines[i]['product_id'][0])
                                     cantidad = orderslines[i]['qty'];
+                                    var precio = orderslines[i]['price_unit'];
                                     orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
                                     orden.set_order_id(orden_id_cargada);
                                 }
@@ -188,8 +188,9 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
         for (var i=0; i< orderslines.length; i++){
             var producto_id = orderslines[i]['product_id'][0];
             var cantidad = orderslines[i]['qty'];
+            var precio = orderslines[i]['price_unit'];
             var producto = db.get_product_by_id(producto_id)
-            orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
             orden.set_order_id(orden_id_cargada);
         }
     }
@@ -218,15 +219,15 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
         var order = this.pos.get_order();
         if (order.get_order_id() == 0 || order.get_order_id() == null ){
             var orderlines = []
-            for(var i = 0; i < order.orderlines.models.length; i++){
+            order.get_orderlines().forEach(function (orderline) {
                 orderlines.push({
                     'order_id':0,
-                    'product_id': order.orderlines.models[i].product.id,
-                    'qty': order.orderlines.models[i].quantity,
-                    'discount': order.orderlines.models[i].discount,
-                    'price_unit': order.orderlines.models[i].price
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price()
                 })
-            }
+            });
 
             var orden;
             if(restaurante==true){
@@ -279,15 +280,16 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
             var order_id = order.attributes.order_id;
             var order_id = order.attributes.order_id;
             var orderlines = []
-            for(var i = 0; i < order.orderlines.models.length; i++){
+            order.get_orderlines().forEach(function (orderline) {
+                console.log(orderline.get_unit_price());
                 orderlines.push({
                     'order_id':0,
-                    'product_id': order.orderlines.models[i].product.id,
-                    'qty': order.orderlines.models[i].quantity,
-                    'discount': order.orderlines.models[i].discount,
-                    'price_unit': order.orderlines.models[i].price
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price()
                 })
-            }
+            });
 
             rpc.query({
                     model: 'pos.order',
@@ -418,8 +420,9 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
                                             for (var i=0; i< orderslines.length; i++){
                                                 producto_id = orderslines[i]['product_id'][0];
                                                 cantidad = orderslines[i]['qty'];
+                                                var precio = orderslines[i]['price_unit'];
                                                 var producto = db.get_product_by_id(producto_id)
-                                                orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+                                                orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
                                                 orden.set_order_id(orden_id_cargada);
                                             }
                                         }
@@ -451,9 +454,10 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
         for (var i=0; i< orderslines.length; i++){
             producto_id = orderslines[i]['product_id'][0];
             cantidad = orderslines[i]['qty'];
+            var precio = orderslines[i]['price_unit'];
             var producto = db.get_product_by_id(producto_id)
             producto.qty = cantidad;
-            orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
 
         }
         rpc.query({
