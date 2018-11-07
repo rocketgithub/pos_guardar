@@ -39,15 +39,15 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 if (restaurante == true){
                     rpc.query({
                             model: 'pos.order',
-                            method: 'search_read',
-                            args: [condiciones, ['name', 'state','partner_id','table_id']],
+                            method: 'buscar_pedidos',
+                            args: [[],[condiciones],[['name', 'state','partner_id','table_id']]],
                         })
                         .then(function (orders){
                             if (orders.length == 0){
                                 rpc.query({
                                         model: 'pos.order',
-                                        method: 'search_read',
-                                        args: [condiciones_por_nombre, ['name', 'state','partner_id','table_id']],
+                                        method: 'buscar_pedidos',
+                                        args: [[],[condiciones_por_nombre],[['name', 'state','partner_id','table_id']]],
                                     })
                                     .then(function (orders){
                                         var orders_list = [];
@@ -69,16 +69,15 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 }else{
                     rpc.query({
                             model: 'pos.order',
-                            method: 'search_read',
-                            args: [condiciones, ['name', 'state','partner_id']],
+                            method: 'buscar_pedidos',
+                            args: [[],[condiciones],[['name', 'state','partner_id']]],
                         })
                         .then(function (orders){
                             if ( orders.length == 0){
-
                                 rpc.query({
                                         model: 'pos.order',
-                                        method: 'search_read',
-                                        args: [condiciones_por_nombre, ['name', 'state','partner_id']],
+                                        method: 'buscar_pedidos',
+                                        args: [[],[condiciones_por_nombre],[['name', 'state','partner_id']]],
                                     })
                                     .then(function (orders){
                                         var orders_list = [];
@@ -118,10 +117,11 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 if (restaurante == true){
                     rpc.query({
                             model: 'pos.order',
-                            method: 'search_read',
-                            args: [[['id', '=', line]], ['id','partner_id','user_id','table_id','customer_count']],
+                            method: 'buscar_pedidos',
+                            args: [[],[[['id', '=', line]]],[['id','partner_id','user_id','table_id','customer_count']]],
                         })
                         .then(function (partner){
+                            console.log(partner)
                             cliente = partner
                             orden_id_cargada = partner[0].id;
                             orden.set_customer_count(partner[0].customer_count);
@@ -138,8 +138,8 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 }else{
                     rpc.query({
                             model: 'pos.order',
-                            method: 'search_read',
-                            args: [[['id', '=', line]], ['id','partner_id','user_id']],
+                            method: 'buscar_pedidos',
+                            args: [[],[[['id', '=', line]]],[['id','partner_id','user_id']]],
                         })
                         .then(function (partner){
                             cliente = partner
@@ -156,7 +156,6 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                 var val = 0;
                                 var producto_id;
                                 for (var i=0; i< orderslines.length; i++){
-
                                     lista.push({'product_id':orderslines[i]['product_id'][0],'qty':orderslines[i]['qty'],});
                                     producto_id = orderslines[i]['product_id'][0];
                                     var cantidad;
