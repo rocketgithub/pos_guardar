@@ -130,58 +130,46 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 }
                 var Orders = new Model('pos.order');
                 if (restaurante > 0){
-                    Orders.query(['name', 'state','partner_id','table_id'])
-                         .filter(condiciones)
-                         .limit(15)
-                         .all().then(function (orders) {
-                            if ( orders.length == 0){
-                                Orders.query(['name', 'state','partner_id','table_id'])
-                                     .filter(condiciones_por_nombre)
-                                     .limit(15)
-                                     .all().then(function (orders) {
-                                        var orders_list = [];
-                                        var i=0;
-                                        for(i = 0; i < orders.length; i++){
-                                            orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],});
-                                        }
-                                        self.select_order(orders_list);
-                                });
-                            }else{
+                    new Model("pos.order").call("buscar_pedidos",[[],condiciones,['name', 'state','partner_id','table_id']]).then(function(orders){
+                        if (orders.length == 0){
+                            new Model("pos.order").call("buscar_pedidos",[[],condiciones_por_nombre,['name', 'state','partner_id','table_id']]).then(function(orders){
                                 var orders_list = [];
                                 var i=0;
                                 for(i = 0; i < orders.length; i++){
                                     orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],});
                                 }
                                 self.select_order(orders_list);
+                            });
+                        }else{
+                            var orders_list = [];
+                            var i=0;
+                            for(i = 0; i < orders.length; i++){
+                                orders_list.push({'label': orders[i]['name'] +', Mesa: '+orders[i]['table_id'][1]+', Cliente: '+orders[i]['partner_id'][1] ,'item':orders[i]['id'],});
                             }
+                            self.select_order(orders_list);
+                        }
+
                     });
                 }else{
-                    Orders.query(['name', 'state','partner_id'])
-                         .filter(condiciones)
-                         .limit(15)
-                         .all().then(function (orders) {
-                            if (orders.length == 0){
-                                Orders.query(['name', 'state','partner_id'])
-                                     .filter(condiciones_por_nombre)
-                                     .limit(15)
-                                     .all().then(function (orders) {
-                                        var orders_list = [];
-                                        var i=0;
-                                        for(i = 0; i < orders.length; i++){
-                                            orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
-                                        }
-                                        self.select_order(orders_list);
-                                });
-                            }else{
+                    new Model("pos.order").call("buscar_pedidos",[[],condiciones,['name', 'state','partner_id','table_id']]).then(function(orders){
+                        if (orders.length == 0){
+                            new Model("pos.order").call("buscar_pedidos",[[],condiciones_por_nombre,['name', 'state','partner_id','table_id']]).then(function(orders){
                                 var orders_list = [];
                                 var i=0;
                                 for(i = 0; i < orders.length; i++){
                                     orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
                                 }
                                 self.select_order(orders_list);
+                            });
+                        }else{
+                            var orders_list = [];
+                            var i=0;
+                            for(i = 0; i < orders.length; i++){
+                                orders_list.push({'label': orders[i]['name'] +', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
                             }
+                            self.select_order(orders_list);
+                        }
                     });
-
                 }
 
 
@@ -207,12 +195,10 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                 var producto_id = 0;
                 var precio_unitario=0;
                 var cantidad=0;
-
+                console.log(line)
                 if (restaurante > 0){
-                    Order.query(['id','user_id','partner_id','table_id','customer_count'])
-                     .filter([['id', '=', line]])
-                     .limit(15)
-                     .all().then(function (partner) {
+                    new Model("pos.order").call("buscar_pedidos",[[],[['id', '=', line]],['id','user_id','partner_id','table_id','customer_count']]).then(function(partner){
+                        console.log(partner)
                         cliente = partner
                         orden_id_cargada = partner[0].id;
                         orden.set_customer_count(partner[0].customer_count);
@@ -225,10 +211,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                         });
                     });
                 }else{
-                    Order.query(['id','user_id','partner_id'])
-                     .filter([['id', '=', line]])
-                     .limit(15)
-                     .all().then(function (partner) {
+                    new Model("pos.order").call("buscar_pedidos",[[],[['id', '=', line]],['id','user_id','partner_id']]).then(function(partner){
                         cliente = partner
                         orden_id_cargada = partner[0]['id'];
 
@@ -242,7 +225,6 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                             var val = 0;
                             var producto_id;
                             for (var i=0; i< orderslines.length; i++){
-
                                 lista.push({'product_id':orderslines[i]['product_id'][0],'qty':orderslines[i]['qty'],});
                                 producto_id = orderslines[i]['product_id'][0];
                                 var cantidad;
