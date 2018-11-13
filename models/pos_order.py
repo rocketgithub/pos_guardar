@@ -6,6 +6,13 @@ import logging
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
+    def buscar_pedidos(self,condiciones, campos):
+        PosOrder = self.env['pos.order']
+        orders = PosOrder.sudo().search_read(
+            condiciones,
+            campos)
+        return orders
+
     def guardar_pedido_session_alterna(self,orden,orderline):
         orden_id = self.env['pos.order'].sudo().create(orden)
         for linea in orderline:
