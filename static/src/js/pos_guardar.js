@@ -178,9 +178,15 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
     agregar_orden: function(order,order_id,orderslines){
         var self = this;
         var db = this.pos.db;
-        if (self.pos.tables_by_id && order[0].table_id && order[0].table_id[0] in self.pos.tables_by_id && self.pos.tables_by_id[order[0].table_id[0]].floor){
+        if (self.pos.tables_by_id &&
+            order[0].table_id &&
+            order[0].table_id[0] in self.pos.tables_by_id &&
+            self.pos.tables_by_id[order[0].table_id[0]].floor) {
             self.pos.set_table(self.pos.tables_by_id[order[0].table_id[0]]);
-        }else{
+        } else if (self.pos.floors &&
+            self.pos.floors[0] &&
+            self.pos.floors[0].tables &&
+            self.pos.floors[0].tables[0]) {
             self.pos.set_table(self.pos.floors[0].tables[0]);
         }
         var orden = self.pos.get_order();
