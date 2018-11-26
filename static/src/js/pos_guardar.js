@@ -106,6 +106,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
         var gui = this.pos.gui;
         var db = this.pos.db;
         var restaurante = this.pos.config.module_pos_restaurant;
+        var notas = this.pos.config.iface_orderline_notes;
         gui.show_popup('selection',{
             'title': 'Por favor seleccione',
             'list': order,
@@ -121,19 +122,29 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                             args: [[],[[['id', '=', line]]],[['id','partner_id','user_id','table_id','customer_count']]],
                         })
                         .then(function (partner){
-                            console.log(partner)
                             cliente = partner
                             orden_id_cargada = partner[0].id;
                             orden.set_customer_count(partner[0].customer_count);
                             self.pos.set_cashier({'id': partner[0].user_id[0]});
-                            rpc.query({
-                                    model: 'pos.order.line',
-                                    method: 'search_read',
-                                    args: [[['order_id', 'like', partner[0].id]], ['id', 'create_uid','name','order_id','price_unit','qty','product_id','discount']],
-                                })
-                                .then(function (orderslines){
-                                    self.agregar_orden(partner, partner[0].id,orderslines);
-                                });
+                            if (notas || notas != null){
+                                rpc.query({
+                                        model: 'pos.order.line',
+                                        method: 'search_read',
+                                        args: [[['order_id', 'like', partner[0].id]], ['id', 'create_uid','name','order_id','price_unit','qty','product_id','discount','nota']],
+                                    })
+                                    .then(function (orderslines){
+                                        self.agregar_orden(partner, partner[0].id,orderslines);
+                                    });
+                            }else{
+                                rpc.query({
+                                        model: 'pos.order.line',
+                                        method: 'search_read',
+                                        args: [[['order_id', 'like', partner[0].id]], ['id', 'create_uid','name','order_id','price_unit','qty','product_id','discount']],
+                                    })
+                                    .then(function (orderslines){
+                                        self.agregar_orden(partner, partner[0].id,orderslines);
+                                    });
+                            }
                         });
                 }else{
                     rpc.query({
@@ -178,6 +189,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
     agregar_orden: function(order,order_id,orderslines){
         var self = this;
         var db = this.pos.db;
+        var notas = this.pos.config.iface_orderline_notes;
         if (self.pos.tables_by_id && order[0].table_id && order[0].table_id[0] in self.pos.tables_by_id && self.pos.tables_by_id[order[0].table_id[0]].floor){
             self.pos.set_table(self.pos.tables_by_id[order[0].table_id[0]]);
         }else{
@@ -194,6 +206,9 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
             var precio = orderslines[i]['price_unit'];
             var producto = db.get_product_by_id(producto_id)
             orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
+            if (notas || notas != null){
+                orden.get_selected_orderline().set_note(orderslines[i]['nota']);
+            }
             orden.set_order_id(orden_id_cargada);
         }
     }
@@ -218,17 +233,30 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
         var self = this;
         var gui = this.pos.gui;
         var restaurante = this.pos.config.module_pos_restaurant;
+        var notas = this.pos.config.iface_orderline_notes;
         var order = this.pos.get_order();
         if (order.get_order_id() == 0 || order.get_order_id() == null ){
             var orderlines = []
             order.get_orderlines().forEach(function (orderline) {
-                orderlines.push({
-                    'order_id':0,
-                    'product_id': orderline.get_product().id,
-                    'qty': orderline.get_quantity(),
-                    'discount': orderline.get_discount(),
-                    'price_unit': orderline.get_unit_price()
-                })
+                if (notas){
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price(),
+                        'nota': orderline.get_note()
+                    })
+                }else{
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price()
+                    })
+                }
+
             });
 
             var orden;
@@ -283,14 +311,24 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
             var order_id = order.attributes.order_id;
             var orderlines = []
             order.get_orderlines().forEach(function (orderline) {
-                console.log(orderline.get_unit_price());
-                orderlines.push({
-                    'order_id':0,
-                    'product_id': orderline.get_product().id,
-                    'qty': orderline.get_quantity(),
-                    'discount': orderline.get_discount(),
-                    'price_unit': orderline.get_unit_price()
-                })
+                if (notas){
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price(),
+                        'nota': orderline.get_note()
+                    })
+                }else{
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price()
+                    })
+                }
             });
 
             rpc.query({
