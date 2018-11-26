@@ -65,3 +65,8 @@ class PosOrder(models.Model):
         orden = self.env['pos.order'].search([['id','=',order_id]])
         orden.sudo().unlink()
         return True
+
+class PosOrderLine(models.Model):
+    _inherit = "pos.order.line"
+
+    nota = fields.Char('Nota')
