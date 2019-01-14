@@ -7,6 +7,7 @@ var pos_db = require('point_of_sale.DB');
 var rpc = require('web.rpc');
 var gui = require('point_of_sale.gui');
 var core = require('web.core');
+var chrome = require('point_of_sale.chrome');
 var es_cargada = 0;
 var QWeb = core.qweb;
 var _t = core._t;
@@ -58,10 +59,20 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                         self.select_order(orders_list);
                                     });
                             }else{
+                                var mesa = self.pos.get_order().table.id
                                 var orders_list = [];
                                 var i=0;
+                                var ordenes = [];
                                 for(i = 0; i < orders.length; i++){
-                                    orders_list.push({'label': orders[i]['name']+', Mesa: '+orders[i]['table_id'][1] + ', Cliente: '+orders[i]['partner_id'][1],'item':orders[i]['id'],});
+                                    if (orders[i].table_id[0] == mesa){
+                                        ordenes.unshift(orders[i]);
+                                    }else{
+                                        ordenes.push(orders[i]);
+                                    }
+
+                                }
+                                for(i = 0; i < ordenes.length; i++){
+                                    orders_list.push({'label': ordenes[i]['name']+', Mesa: '+ordenes[i]['table_id'][1] + ', Cliente: '+ordenes[i]['partner_id'][1],'item':ordenes[i]['id'],});
                                 }
                                 self.select_order(orders_list);
                             }
@@ -605,6 +616,107 @@ models.Order = models.Order.extend({
         return this.get('orders_id');
     },
 })
+chrome.OrderSelectorWidget.include({
+    floor_button_click_handler: function(){
+        var self = this;
+        var order = this.pos.get_order();
+        var gui = this.pos.gui;
+        var notas = this.pos.config.iface_orderline_notes;
+        var restaurante = this.pos.config.module_pos_restaurant;
+        if (this.pos.config.opcion_guardar_pedidos_mesas){
+            if (order.get_order_id() == 0 || order.get_order_id() == null ){
+                var orderlines = []
+                if (order.get_orderlines().length > 0){
+                    order.get_orderlines().forEach(function (orderline) {
+                        if (notas){
+                            orderlines.push({
+                                'order_id':0,
+                                'product_id': orderline.get_product().id,
+                                'qty': orderline.get_quantity(),
+                                'discount': orderline.get_discount(),
+                                'price_unit': orderline.get_unit_price(),
+                                'nota': orderline.get_note()
+                            })
+                        }else{
+                            orderlines.push({
+                                'order_id':0,
+                                'product_id': orderline.get_product().id,
+                                'qty': orderline.get_quantity(),
+                                'discount': orderline.get_discount(),
+                                'price_unit': orderline.get_unit_price()
+                            })
+                        }
 
+                    });
+                    var orden;
+                    orden = {
+                        'partner_id': order.get_client().id,
+                        'session_id': this.pos.config.session_save_order[0],
+                        'user_id': this.pos.get_cashier().id,
+                        'customer_count': order.get_customer_count(),
+                        'table_id': order.table.id
+                    }
+                    rpc.query({
+                            model: 'pos.order',
+                            method: 'guardar_pedido_session_alterna',
+                            args: [[],[orden],[orderlines]],
+                        })
+                        .then(function (order_name){
+
+                            gui.show_popup('confirm',{
+                                'title': 'Pedido guardado No.',
+                                'body': order_name,
+                                'confirm': function(data) {
+                                },
+
+                            });
+
+
+                        });
+                }
+                this.pos.delete_current_order();
+            }else{
+                var orden;
+                orden = {
+                    'partner_id': order.get_client().id,
+                    'user_id': this.pos.get_cashier().id,
+                    'customer_count': order.get_customer_count()
+                }
+                var order_id = order.attributes.order_id;
+                var orderlines = []
+                order.get_orderlines().forEach(function (orderline) {
+                    if (notas){
+                        orderlines.push({
+                            'order_id':0,
+                            'product_id': orderline.get_product().id,
+                            'qty': orderline.get_quantity(),
+                            'discount': orderline.get_discount(),
+                            'price_unit': orderline.get_unit_price(),
+                            'nota': orderline.get_note()
+                        })
+                    }else{
+                        orderlines.push({
+                            'order_id':0,
+                            'product_id': orderline.get_product().id,
+                            'qty': orderline.get_quantity(),
+                            'discount': orderline.get_discount(),
+                            'price_unit': orderline.get_unit_price()
+                        })
+                    }
+                });
+                rpc.query({
+                        model: 'pos.order',
+                        method: 'actualizar_pedido',
+                        args: [[],[order_id],[orden],[orderlines],[restaurante]],
+                    })
+                    .then(function (result){
+
+                    });
+                this.pos.delete_current_order();
+            }
+        }
+        this._super();
+    },
+});
 
 });
