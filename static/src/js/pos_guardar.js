@@ -141,7 +141,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                 rpc.query({
                                         model: 'pos.order.line',
                                         method: 'search_read',
-                                        args: [[['order_id', 'like', partner[0].id]], ['id', 'create_uid','name','order_id','price_unit','qty','product_id','discount','nota']],
+                                        args: [[['order_id', 'like', partner[0].id]], ['id', 'create_uid','name','order_id','price_unit','qty','product_id','discount','note']],
                                     })
                                     .then(function (orderslines){
                                         self.agregar_orden(partner, partner[0].id,orderslines);
@@ -224,7 +224,7 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
             var producto = db.get_product_by_id(producto_id)
             orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
             if (notas || notas != null){
-                orden.get_selected_orderline().set_note(orderslines[i]['nota']);
+                orden.get_selected_orderline().set_note(orderslines[i]['note']);
             }
             orden.set_order_id(orden_id_cargada);
         }
@@ -262,7 +262,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'qty': orderline.get_quantity(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price(),
-                        'nota': orderline.get_note()
+                        'note': orderline.get_note()
                     })
                 }else{
                     orderlines.push({
@@ -335,7 +335,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'qty': orderline.get_quantity(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price(),
-                        'nota': orderline.get_note()
+                        'note': orderline.get_note()
                     })
                 }else{
                     orderlines.push({
@@ -641,7 +641,7 @@ chrome.OrderSelectorWidget.include({
                                 'qty': orderline.get_quantity(),
                                 'discount': orderline.get_discount(),
                                 'price_unit': orderline.get_unit_price(),
-                                'nota': orderline.get_note()
+                                'note': orderline.get_note()
                             })
                         }else{
                             orderlines.push({
@@ -698,7 +698,7 @@ chrome.OrderSelectorWidget.include({
                             'qty': orderline.get_quantity(),
                             'discount': orderline.get_discount(),
                             'price_unit': orderline.get_unit_price(),
-                            'nota': orderline.get_note()
+                            'note': orderline.get_note()
                         })
                     }else{
                         orderlines.push({
