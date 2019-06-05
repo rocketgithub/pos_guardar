@@ -231,7 +231,8 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                 var producto = db.get_product_by_id(orderslines[i]['product_id'][0])
                                 cantidad = orderslines[i]['qty'];
                                 var precio = orderslines[i]['price_unit'];
-                                orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
+                                var descuento = orderslines[i]['discount'];
+                                orden.add_product(producto,{price: precio,quantity: cantidad,discount: descuento ,cargar_extras: false});
                                 orden.set_order_id(orden_id_cargada);
                             }
                             self.pos.set_cashier({'id': cliente[0].user_id[0]});
@@ -260,9 +261,10 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
             producto_id = orderslines[i]['product_id'][0];
             cantidad = orderslines[i]['qty'];
             var precio = orderslines[i]['price_unit'];
+            var descuento = orderslines[i]['discount'];
             var producto = db.get_product_by_id(producto_id);
             producto.extras_id = 0;
-            orden.add_product(producto,{price:precio,quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price:precio,quantity: cantidad,discount: descuento ,cargar_extras: false});
             orden.set_order_id(orden_id_cargada);
         }
     }
@@ -379,8 +381,9 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
                                                 producto_id = orderslines[i]['product_id'][0];
                                                 cantidad = orderslines[i]['qty'];
                                                 var precio = orderslines[i]['price_unit'];
+                                                var descuento = orderslines[i]['discount'];
                                                 var producto = db.get_product_by_id(producto_id)
-                                                orden.add_product(producto,{price:precio,quantity: cantidad,cargar_extras: false});
+                                                orden.add_product(producto,{price:precio,quantity: cantidad,discount: descuento,cargar_extras: false});
                                                 orden.set_order_id(orden_id_cargada);
                                             }
                                         }
@@ -413,10 +416,11 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
             producto_id = orderslines[i]['product_id'][0];
             cantidad = orderslines[i]['qty'];
             var precio = orderslines[i]['price_unit'];
+            var descuento = orderslines[i]['discount'];
             var producto = db.get_product_by_id(producto_id)
             producto.qty = cantidad;
             producto.extras_id = 0;
-            orden.add_product(producto,{price:precio,quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price:precio,quantity: cantidad,discount: descuento,cargar_extras: false});
         }
         new Model("pos.order").call("unlink_order",[[],order[a].id]).then(function(result){
 
