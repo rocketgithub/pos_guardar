@@ -221,8 +221,9 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
             var producto_id = orderslines[i]['product_id'][0];
             var cantidad = orderslines[i]['qty'];
             var precio = orderslines[i]['price_unit'];
+            var descuento = orderslines[i]['discount'];
             var producto = db.get_product_by_id(producto_id)
-            orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price: precio,quantity: cantidad,discount: descuento,cargar_extras: false});
             if (notas || notas != null){
                 orden.get_selected_orderline().set_note(orderslines[i]['note']);
             }
@@ -479,7 +480,8 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
                                                 cantidad = orderslines[i]['qty'];
                                                 var precio = orderslines[i]['price_unit'];
                                                 var producto = db.get_product_by_id(producto_id)
-                                                orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
+                                                var descuento = orderslines[i]['discount'];
+                                                orden.add_product(producto,{price: precio,quantity: cantidad,discount: descuento,cargar_extras: false});
                                                 orden.set_order_id(orden_id_cargada);
                                             }
                                         }
@@ -512,9 +514,10 @@ var LoadOrderSessionButton = screens.ActionButtonWidget.extend({
             producto_id = orderslines[i]['product_id'][0];
             cantidad = orderslines[i]['qty'];
             var precio = orderslines[i]['price_unit'];
+            var descuento = orderslines[i]['discount'];
             var producto = db.get_product_by_id(producto_id)
             producto.qty = cantidad;
-            orden.add_product(producto,{price: precio,quantity: cantidad,cargar_extras: false});
+            orden.add_product(producto,{price: precio,quantity: cantidad,discount: descuento,cargar_extras: false});
 
         }
         rpc.query({
