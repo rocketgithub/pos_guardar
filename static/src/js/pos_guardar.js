@@ -50,7 +50,6 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'company_id': this.pos.config.company_id[0]
                 }
             }
-            console.log(this.pos);
             new Model("pos.order").call("guardar_pedido_session_alterna",[[],orden,orderlines]).then(function(order_name){
 
                 self.gui.show_popup('confirm', {
