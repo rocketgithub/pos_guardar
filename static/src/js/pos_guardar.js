@@ -39,15 +39,18 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'session_id': this.pos.config.session_save_order[0],
                     'user_id': this.pos.get_cashier().id,
                     'customer_count': order.get_customer_count(),
-                    'table_id': order.table.id
+                    'table_id': order.table.id,
+                    'company_id': this.pos.config.company_id[0]
                 }
             }else{
                 orden = {
                     'partner_id': order.get_client().id,
                     'session_id': this.pos.config.session_save_order[0],
-                    'user_id': this.pos.get_cashier().id
+                    'user_id': this.pos.get_cashier().id,
+                    'company_id': this.pos.config.company_id[0]
                 }
             }
+            console.log(this.pos);
             new Model("pos.order").call("guardar_pedido_session_alterna",[[],orden,orderlines]).then(function(order_name){
 
                 self.gui.show_popup('confirm', {
