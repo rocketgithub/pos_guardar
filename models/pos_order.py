@@ -70,3 +70,10 @@ class PosOrderLine(models.Model):
     _inherit = "pos.order.line"
 
     note = fields.Char('Nota')
+
+    def buscar_lineas_pedidos(self,condiciones, campos):
+        PosOrder = self.env['pos.order.line']
+        lines = PosOrder.sudo().search_read(
+            condiciones[0],
+            campos[0], order='order_id desc')
+        return lines

@@ -1,6 +1,7 @@
 odoo.define('pos_guardar.pos_guardar', function (require) {
 "use strict";
 
+var floors = require('pos_restaurant.floors');
 var screens = require('point_of_sale.screens');
 var models = require('point_of_sale.models');
 var pos_db = require('point_of_sale.DB');
@@ -285,6 +286,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'user_id': this.pos.get_cashier().id,
                     'customer_count': order.get_customer_count(),
                     'table_id': order.table.id,
+                    'pos_reference': order.name,
                     'company_id': this.pos.config.company_id[0]
                 }
             }else{
@@ -292,6 +294,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'partner_id': order.get_client().id,
                     'session_id': this.pos.config.session_save_order[0],
                     'user_id': this.pos.get_cashier().id,
+                    'pos_reference': order.name,
                     'company_id': this.pos.config.company_id[0]
                 }
             }
@@ -318,11 +321,13 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': this.pos.get_cashier().id,
+                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
             }else{
                 orden = {
                     'partner_id': order.get_client().id,
+                    'pos_reference': order.name,
                     'user_id': this.pos.get_cashier().id
                 }
             }
@@ -728,6 +733,124 @@ chrome.OrderSelectorWidget.include({
             }
         }
         this._super();
+    },
+});
+
+floors.TableWidget.include({
+    click_handler: function(){
+
+        this._super();
+        var self = this;
+
+/*
+        //Borra todas las pestañas de la pantalla del punto de venta.
+        //Cuando hay muchas pestañas creadas (hacia la derecha), desaparecen el botón para eliminar pestañas.
+        var orders = this.pos.get_table_orders(this.table);
+        for (var i = 0; i < orders.length; i++) {
+            self.pos.set_order(orders[i]);
+            self.pos.delete_current_order();
+        }
+*/
+
+        /*
+        Guardo en pos_reference_ids los ids de las ordenes que ya están cargadas en la pantalla del punto de venta, 
+        para no cargarlas nuevamente.
+        La idea de no cargarlas nuevamente es porque posiblemente esos pedidos cargados previamente pueden estar modificados en pantalla.
+        */
+        var pos_reference_ids = [];
+        var order_id;
+        var orders = this.pos.get_table_orders(this.table);
+        for (var i = 0; i < orders.length; i++) {
+            pos_reference_ids.push(orders[i].name);
+        }
+
+        /*
+        La primera vez que el usuario ingresa a la pantalla del punto de venta, ya existe una pestaña vacía. 
+        Reviso si esta pestaña existe para utilizarla posteriormente.
+        */
+        var existe_orden_en_blanco = false;
+        if (orders.length == 1) {
+            order_id = orders[0].get_order_id();
+            if (order_id == 0 || order_id == null) {
+                if (!orders[0].get_client()) {
+                    if (orders[0].get_orderlines().length == 0) {
+                        existe_orden_en_blanco = true;
+                    }
+                }
+            }
+        }
+
+        // Obtengo pedidos de la mesa, en borrador, y que no esten ya cargados en la pantalla del punto de venta.
+        rpc.query({
+                model: 'pos.order',
+                method: 'search_read',
+                args: [[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]], ['id', 'partner_id', 'user_id', 'table_id', 'customer_count']],
+            })
+            .then(function (orders){
+                if (orders.length > 0) {
+                    var ordenes = {};
+                    var order_ids = [];
+                    for (i = 0; i < orders.length; i++) {
+                        order_ids.push(orders[i].id);
+                        ordenes[orders[i].id] = orders[i];
+                    }
+
+                    /*
+                    En una sola consulta obtengo todas las lineas de todos los pedidos encontrados. 
+                    Esto para evitar posibles problemas asincronicos.
+                    */
+                    rpc.query({
+                            model: 'pos.order.line',
+                            method: 'buscar_lineas_pedidos',
+                            args: [[],[[['order_id', 'in', order_ids]]],[['id', 'create_uid', 'order_id', 'price_unit', 'qty', 'product_id', 'discount', 'note']]],
+                        })
+                        .then(function (lines){
+                            if (lines.length > 0) {
+                                var db = self.pos.db;
+                                var notas = self.pos.config.iface_orderline_notes;
+                                var order_id = 0;
+
+                                for (i = 0; i < lines.length; i++) {
+                                    //Reviso si la linea corresponde a un siguiente pedido.
+                                    if (order_id != lines[i].order_id[0]) {
+                                        //Decido si se crea una nueva pestaña, o se utiliza la que ya está en blanco por default.
+                                        if (i == 0) {
+                                            if (!existe_orden_en_blanco) {
+                                                self.pos.add_new_order();
+                                            }
+                                        }
+                                        else {
+                                            self.pos.add_new_order();
+                                        }
+
+                                        // Este bloque copy/paste del proceso de Cargar (LoadOrderButton).
+                                        order_id = lines[i].order_id[0];
+                                        var o = self.pos.get_order();
+                                        o.set_customer_count(ordenes[order_id].customer_count);
+                                        self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
+                                        o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
+//                                        o.set_order_id(ordenes[order_id].id);
+                                        
+                                        rpc.query({
+                                                model: 'pos.order',
+                                                method: 'write',
+                                                args: [[ordenes[order_id].id], {'pos_reference': o.name}],
+                                            })
+                                            .fail(function (type, err){});
+
+
+                                    }
+                                    // Se agrega el producto al pedido actual, y posteriormente una nota (copy/paste).
+                                    o.add_product(db.get_product_by_id(lines[i]['product_id'][0]), {price: lines[i]['price_unit'], quantity: lines[i]['qty'], discount: lines[i]['discount'], cargar_extras: false});
+                                    if (notas || notas != null){
+                                        o.get_last_orderline().set_note(lines[i]['note']);
+                                    }
+                                }
+                            }
+                        });
+                }
+
+            });
     },
 });
 
