@@ -830,13 +830,14 @@ floors.TableWidget.include({
                                         self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
 //                                        o.set_order_id(ordenes[order_id].id);
-                                        
+
+
                                         rpc.query({
                                                 model: 'pos.order',
-                                                method: 'write',
-                                                args: [[ordenes[order_id].id], {'pos_reference': o.name}],
+                                                method: 'actualizar_referencia',
+                                                args: [[],[ordenes[order_id].id], o.name],
                                             })
-                                            .fail(function (type, err){});
+                                            .then(function (result){});
 
 
                                     }

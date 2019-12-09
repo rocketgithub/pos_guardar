@@ -20,6 +20,10 @@ class PosOrder(models.Model):
             linea_id = self.env['pos.order.line'].sudo().create(linea)
         return orden_id.name
 
+    def actualizar_referencia(self, orden_id, referencia):
+        orden = self.env['pos.order'].sudo().search([['id', '=', orden_id]])
+        orden.sudo().write({'pos_reference': referencia})
+        
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
         orders = self.env['pos.order'].search([['id', '=', orden_id]])
         logging.warn(restaurante)
