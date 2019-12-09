@@ -783,8 +783,8 @@ floors.TableWidget.include({
         // Obtengo pedidos de la mesa, en borrador, y que no esten ya cargados en la pantalla del punto de venta.
         rpc.query({
                 model: 'pos.order',
-                method: 'search_read',
-                args: [[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]], ['id', 'partner_id', 'user_id', 'table_id', 'customer_count']],
+                method: 'buscar_pedidos',
+                args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count']]],
             })
             .then(function (orders){
                 if (orders.length > 0) {
