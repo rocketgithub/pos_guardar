@@ -242,6 +242,130 @@ screens.define_action_button({
     },
 });
 
+
+
+function guardar_orden(obj, boton_guardar) {
+    var gui = obj.pos.gui;
+    var notas = obj.pos.config.iface_orderline_notes;
+    var restaurante = obj.pos.config.module_pos_restaurant;
+
+    alert('funcion guardar_orden 1');
+    var order = obj.pos.get_order();
+    if (order.get_order_id() == 0 || order.get_order_id() == null ){
+        var orderlines = []
+        order.get_orderlines().forEach(function (orderline) {
+            if (notas){
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price(),
+                    'note': orderline.get_note()
+                })
+            }else{
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price()
+                })
+            }
+
+        });
+
+        var orden;
+        if(restaurante==true){
+            orden = {
+                'partner_id': order.get_client().id,
+                'session_id': obj.pos.config.session_save_order[0],
+                'user_id': obj.pos.get_cashier().id,
+                'customer_count': order.get_customer_count(),
+                'table_id': order.table.id,
+                'pos_reference': order.name,
+                'company_id': obj.pos.config.company_id[0]
+            }
+        }else{
+            orden = {
+                'partner_id': order.get_client().id,
+                'session_id': obj.pos.config.session_save_order[0],
+                'user_id': obj.pos.get_cashier().id,
+                'pos_reference': order.name,
+                'company_id': obj.pos.config.company_id[0]
+            }
+        }
+        rpc.query({
+                model: 'pos.order',
+                method: 'guardar_pedido_session_alterna',
+                args: [[],[orden],[orderlines]],
+            })
+            .then(function (order_name){
+
+                if (boton_guardar) {
+                    gui.show_popup('confirm',{
+                        'title': 'Pedido guardado No.',
+                        'body': order_name,
+                        'confirm': function(data) {
+                        },
+
+                    });
+                }
+            });
+    }else{
+        var orden;
+        if (restaurante == true){
+            orden = {
+                'partner_id': order.get_client().id,
+                'user_id': obj.pos.get_cashier().id,
+                'pos_reference': order.name,
+                'customer_count': order.get_customer_count()
+            }
+        }else{
+            orden = {
+                'partner_id': order.get_client().id,
+                'pos_reference': order.name,
+                'user_id': obj.pos.get_cashier().id
+            }
+        }
+
+        var order_id = order.attributes.order_id;
+        var order_id = order.attributes.order_id;
+        var orderlines = []
+        order.get_orderlines().forEach(function (orderline) {
+            if (notas){
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price(),
+                    'note': orderline.get_note()
+                })
+            }else{
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price()
+                })
+            }
+        });
+
+        rpc.query({
+                model: 'pos.order',
+                method: 'actualizar_pedido',
+                args: [[],[order_id],[orden],[orderlines],[restaurante]],
+            })
+            .then(function (result){
+
+            });
+    }
+    obj.pos.delete_current_order();
+}
+
+
 var SaveOrderButton = screens.ActionButtonWidget.extend({
     template: 'SaveOrderButton',
     init: function(parent, options) {
@@ -249,6 +373,12 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
         this.pos.bind('change:selectedOrder',this.renderElement,this);
     },
     button_click: function(){
+        guardar_orden(this, true);
+        var order = this.pos.get_order();
+        order.save_order = !order.save_order;
+        this.renderElement();
+    },
+    button_click2: function(){
         var self = this;
         var gui = this.pos.gui;
         var restaurante = this.pos.config.module_pos_restaurant;
@@ -632,17 +762,197 @@ models.Order = models.Order.extend({
         return this.get('orders_id');
     },
 })
+
+
+function guardar_orden2(obj) {
+    var gui = obj.pos.gui;
+    var notas = obj.pos.config.iface_orderline_notes;
+    var restaurante = obj.pos.config.module_pos_restaurant;
+
+    alert('funcion guardar_orden');
+    var order = obj.pos.get_order();
+    if (order.get_order_id() == 0 || order.get_order_id() == null ){
+        var orderlines = []
+        if (order.get_orderlines().length > 0){
+            order.get_orderlines().forEach(function (orderline) {
+                if (notas){
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price(),
+                        'note': orderline.get_note()
+                    })
+                }else{
+                    orderlines.push({
+                        'order_id':0,
+                        'product_id': orderline.get_product().id,
+                        'qty': orderline.get_quantity(),
+                        'discount': orderline.get_discount(),
+                        'price_unit': orderline.get_unit_price()
+                    })
+                }
+
+            });
+            var orden;
+            orden = {
+                'partner_id': order.get_client().id,
+                'session_id': obj.pos.config.session_save_order[0],
+                'user_id': obj.pos.get_cashier().id,
+                'customer_count': order.get_customer_count(),
+                'table_id': order.table.id,
+                'pos_reference': order.name,
+                'company_id': obj.pos.config.company_id[0]
+            }
+            rpc.query({
+                    model: 'pos.order',
+                    method: 'guardar_pedido_session_alterna',
+                    args: [[],[orden],[orderlines]],
+                })
+                .then(function (order_name){
+
+                    gui.show_popup('confirm',{
+                        'title': 'Pedido guardado No.',
+                        'body': order_name,
+                        'confirm': function(data) {
+                        },
+
+                    });
+
+
+                });
+        }
+        obj.pos.delete_current_order();
+    }else{
+        var orden;
+        orden = {
+            'partner_id': order.get_client().id,
+            'user_id': obj.pos.get_cashier().id,
+            'pos_reference': order.name,
+            'customer_count': order.get_customer_count()
+        }
+        var order_id = order.attributes.order_id;
+        var orderlines = []
+        order.get_orderlines().forEach(function (orderline) {
+            if (notas){
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price(),
+                    'note': orderline.get_note()
+                })
+            }else{
+                orderlines.push({
+                    'order_id':0,
+                    'product_id': orderline.get_product().id,
+                    'qty': orderline.get_quantity(),
+                    'discount': orderline.get_discount(),
+                    'price_unit': orderline.get_unit_price()
+                })
+            }
+        });
+        rpc.query({
+                model: 'pos.order',
+                method: 'actualizar_pedido',
+                args: [[],[order_id],[orden],[orderlines],[restaurante]],
+            })
+            .then(function (result){
+
+            });
+        obj.pos.delete_current_order();
+    }
+}
+
+
 chrome.OrderSelectorWidget.include({
     floor_button_click_handler: function(){
+        if (this.pos.config.opcion_guardar_pedidos_mesas){
+            var orders = this.pos.get_order_list();
+            for (var i = 0; i < orders.length; i++) {
+                this.pos.set_order(orders[i]);
+                guardar_orden(this, false);
+            }
+        }
+    },
+
+    floor_button_click_handler2: function(){
         var self = this;
-        var order = this.pos.get_order();
+//        var order = this.pos.get_order();
         var gui = this.pos.gui;
         var notas = this.pos.config.iface_orderline_notes;
         var restaurante = this.pos.config.module_pos_restaurant;
         if (this.pos.config.opcion_guardar_pedidos_mesas){
-            if (order.get_order_id() == 0 || order.get_order_id() == null ){
-                var orderlines = []
-                if (order.get_orderlines().length > 0){
+
+            var orders = this.pos.get_order_list();
+            for (var i = 0; i < orders.length; i++) {
+                this.pos.set_order(orders[i]);
+                var order = this.pos.get_order();
+                if (order.get_order_id() == 0 || order.get_order_id() == null ){
+                    var orderlines = []
+                    if (order.get_orderlines().length > 0){
+                        order.get_orderlines().forEach(function (orderline) {
+                            if (notas){
+                                orderlines.push({
+                                    'order_id':0,
+                                    'product_id': orderline.get_product().id,
+                                    'qty': orderline.get_quantity(),
+                                    'discount': orderline.get_discount(),
+                                    'price_unit': orderline.get_unit_price(),
+                                    'note': orderline.get_note()
+                                })
+                            }else{
+                                orderlines.push({
+                                    'order_id':0,
+                                    'product_id': orderline.get_product().id,
+                                    'qty': orderline.get_quantity(),
+                                    'discount': orderline.get_discount(),
+                                    'price_unit': orderline.get_unit_price()
+                                })
+                            }
+
+                        });
+                        var orden;
+                        orden = {
+                            'partner_id': order.get_client().id,
+                            'session_id': this.pos.config.session_save_order[0],
+                            'user_id': this.pos.get_cashier().id,
+                            'customer_count': order.get_customer_count(),
+                            'table_id': order.table.id,
+                            'pos_reference': order.name,
+                            'company_id': this.pos.config.company_id[0]
+                        }
+                        rpc.query({
+                                model: 'pos.order',
+                                method: 'guardar_pedido_session_alterna',
+                                args: [[],[orden],[orderlines]],
+                            })
+                            .then(function (order_name){
+
+                                gui.show_popup('confirm',{
+                                    'title': 'Pedido guardado No.',
+                                    'body': order_name,
+                                    'confirm': function(data) {
+                                    },
+
+                                });
+
+
+                            });
+                    }
+                    this.pos.delete_current_order();
+                }else{
+                    var orden;
+                    orden = {
+                        'partner_id': order.get_client().id,
+                        'user_id': this.pos.get_cashier().id,
+                        'pos_reference': order.name,
+                        'customer_count': order.get_customer_count()
+                    }
+                    var order_id = order.attributes.order_id;
+                    var orderlines = []
                     order.get_orderlines().forEach(function (orderline) {
                         if (notas){
                             orderlines.push({
@@ -662,74 +972,17 @@ chrome.OrderSelectorWidget.include({
                                 'price_unit': orderline.get_unit_price()
                             })
                         }
-
                     });
-                    var orden;
-                    orden = {
-                        'partner_id': order.get_client().id,
-                        'session_id': this.pos.config.session_save_order[0],
-                        'user_id': this.pos.get_cashier().id,
-                        'customer_count': order.get_customer_count(),
-                        'table_id': order.table.id,
-                        'company_id': this.pos.config.company_id[0]
-                    }
                     rpc.query({
                             model: 'pos.order',
-                            method: 'guardar_pedido_session_alterna',
-                            args: [[],[orden],[orderlines]],
+                            method: 'actualizar_pedido',
+                            args: [[],[order_id],[orden],[orderlines],[restaurante]],
                         })
-                        .then(function (order_name){
-
-                            gui.show_popup('confirm',{
-                                'title': 'Pedido guardado No.',
-                                'body': order_name,
-                                'confirm': function(data) {
-                                },
-
-                            });
-
+                        .then(function (result){
 
                         });
+                    this.pos.delete_current_order();
                 }
-                this.pos.delete_current_order();
-            }else{
-                var orden;
-                orden = {
-                    'partner_id': order.get_client().id,
-                    'user_id': this.pos.get_cashier().id,
-                    'customer_count': order.get_customer_count()
-                }
-                var order_id = order.attributes.order_id;
-                var orderlines = []
-                order.get_orderlines().forEach(function (orderline) {
-                    if (notas){
-                        orderlines.push({
-                            'order_id':0,
-                            'product_id': orderline.get_product().id,
-                            'qty': orderline.get_quantity(),
-                            'discount': orderline.get_discount(),
-                            'price_unit': orderline.get_unit_price(),
-                            'note': orderline.get_note()
-                        })
-                    }else{
-                        orderlines.push({
-                            'order_id':0,
-                            'product_id': orderline.get_product().id,
-                            'qty': orderline.get_quantity(),
-                            'discount': orderline.get_discount(),
-                            'price_unit': orderline.get_unit_price()
-                        })
-                    }
-                });
-                rpc.query({
-                        model: 'pos.order',
-                        method: 'actualizar_pedido',
-                        args: [[],[order_id],[orden],[orderlines],[restaurante]],
-                    })
-                    .then(function (result){
-
-                    });
-                this.pos.delete_current_order();
             }
         }
         this._super();
@@ -829,7 +1082,7 @@ floors.TableWidget.include({
                                         o.set_customer_count(ordenes[order_id].customer_count);
                                         self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
-//                                        o.set_order_id(ordenes[order_id].id);
+                                        o.set_order_id(ordenes[order_id].id);
 
 
                                         rpc.query({
