@@ -1001,7 +1001,7 @@ floors.TableWidget.include({
                                     if (notas || notas != null){
                                         o.get_last_orderline().set_note(lines[i]['note']);
                                     }
-//                                    o.saveChanges();
+                                    o.saveChanges();
                                 }
                             }
                         });
