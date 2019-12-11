@@ -249,8 +249,8 @@ function guardar_orden(obj, boton_guardar) {
     var notas = obj.pos.config.iface_orderline_notes;
     var restaurante = obj.pos.config.module_pos_restaurant;
 
-    alert('funcion guardar_orden 1');
     var order = obj.pos.get_order();
+    order.printChanges();
     if (order.get_order_id() == 0 || order.get_order_id() == null ){
         var orderlines = []
         order.get_orderlines().forEach(function (orderline) {
@@ -764,109 +764,6 @@ models.Order = models.Order.extend({
 })
 
 
-function guardar_orden2(obj) {
-    var gui = obj.pos.gui;
-    var notas = obj.pos.config.iface_orderline_notes;
-    var restaurante = obj.pos.config.module_pos_restaurant;
-
-    alert('funcion guardar_orden');
-    var order = obj.pos.get_order();
-    if (order.get_order_id() == 0 || order.get_order_id() == null ){
-        var orderlines = []
-        if (order.get_orderlines().length > 0){
-            order.get_orderlines().forEach(function (orderline) {
-                if (notas){
-                    orderlines.push({
-                        'order_id':0,
-                        'product_id': orderline.get_product().id,
-                        'qty': orderline.get_quantity(),
-                        'discount': orderline.get_discount(),
-                        'price_unit': orderline.get_unit_price(),
-                        'note': orderline.get_note()
-                    })
-                }else{
-                    orderlines.push({
-                        'order_id':0,
-                        'product_id': orderline.get_product().id,
-                        'qty': orderline.get_quantity(),
-                        'discount': orderline.get_discount(),
-                        'price_unit': orderline.get_unit_price()
-                    })
-                }
-
-            });
-            var orden;
-            orden = {
-                'partner_id': order.get_client().id,
-                'session_id': obj.pos.config.session_save_order[0],
-                'user_id': obj.pos.get_cashier().id,
-                'customer_count': order.get_customer_count(),
-                'table_id': order.table.id,
-                'pos_reference': order.name,
-                'company_id': obj.pos.config.company_id[0]
-            }
-            rpc.query({
-                    model: 'pos.order',
-                    method: 'guardar_pedido_session_alterna',
-                    args: [[],[orden],[orderlines]],
-                })
-                .then(function (order_name){
-
-                    gui.show_popup('confirm',{
-                        'title': 'Pedido guardado No.',
-                        'body': order_name,
-                        'confirm': function(data) {
-                        },
-
-                    });
-
-
-                });
-        }
-        obj.pos.delete_current_order();
-    }else{
-        var orden;
-        orden = {
-            'partner_id': order.get_client().id,
-            'user_id': obj.pos.get_cashier().id,
-            'pos_reference': order.name,
-            'customer_count': order.get_customer_count()
-        }
-        var order_id = order.attributes.order_id;
-        var orderlines = []
-        order.get_orderlines().forEach(function (orderline) {
-            if (notas){
-                orderlines.push({
-                    'order_id':0,
-                    'product_id': orderline.get_product().id,
-                    'qty': orderline.get_quantity(),
-                    'discount': orderline.get_discount(),
-                    'price_unit': orderline.get_unit_price(),
-                    'note': orderline.get_note()
-                })
-            }else{
-                orderlines.push({
-                    'order_id':0,
-                    'product_id': orderline.get_product().id,
-                    'qty': orderline.get_quantity(),
-                    'discount': orderline.get_discount(),
-                    'price_unit': orderline.get_unit_price()
-                })
-            }
-        });
-        rpc.query({
-                model: 'pos.order',
-                method: 'actualizar_pedido',
-                args: [[],[order_id],[orden],[orderlines],[restaurante]],
-            })
-            .then(function (result){
-
-            });
-        obj.pos.delete_current_order();
-    }
-}
-
-
 chrome.OrderSelectorWidget.include({
     floor_button_click_handler: function(){
         if (this.pos.config.opcion_guardar_pedidos_mesas){
@@ -995,7 +892,7 @@ floors.TableWidget.include({
         this._super();
         var self = this;
 
-/*
+
         //Borra todas las pestañas de la pantalla del punto de venta.
         //Cuando hay muchas pestañas creadas (hacia la derecha), desaparecen el botón para eliminar pestañas.
         var orders = this.pos.get_table_orders(this.table);
@@ -1003,7 +900,7 @@ floors.TableWidget.include({
             self.pos.set_order(orders[i]);
             self.pos.delete_current_order();
         }
-*/
+
 
         /*
         Guardo en pos_reference_ids los ids de las ordenes que ya están cargadas en la pantalla del punto de venta, 
@@ -1014,6 +911,7 @@ floors.TableWidget.include({
         var order_id;
         var orders = this.pos.get_table_orders(this.table);
         for (var i = 0; i < orders.length; i++) {
+            alert(orders[i].name);
             pos_reference_ids.push(orders[i].name);
         }
 
@@ -1040,7 +938,10 @@ floors.TableWidget.include({
                 args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count']]],
             })
             .then(function (orders){
-                if (orders.length > 0) {
+                if (orders.length == 0) {
+                    self.pos.add_new_order();
+                }
+                else if (orders.length > 0) {
                     var ordenes = {};
                     var order_ids = [];
                     for (i = 0; i < orders.length; i++) {
@@ -1083,6 +984,7 @@ floors.TableWidget.include({
                                         self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
                                         o.set_order_id(ordenes[order_id].id);
+                                        self.pos.set_order(o);
 
 
                                         rpc.query({
@@ -1099,6 +1001,7 @@ floors.TableWidget.include({
                                     if (notas || notas != null){
                                         o.get_last_orderline().set_note(lines[i]['note']);
                                     }
+                                    o.saveChanges();
                                 }
                             }
                         });
