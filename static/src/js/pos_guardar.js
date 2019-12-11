@@ -250,7 +250,7 @@ function guardar_orden(obj, boton_guardar) {
     var restaurante = obj.pos.config.module_pos_restaurant;
 
     var order = obj.pos.get_order();
-    order.printChanges();
+//    order.printChanges();
     if (order.get_order_id() == 0 || order.get_order_id() == null ){
         var orderlines = []
         order.get_orderlines().forEach(function (orderline) {
@@ -1001,7 +1001,7 @@ floors.TableWidget.include({
                                     if (notas || notas != null){
                                         o.get_last_orderline().set_note(lines[i]['note']);
                                     }
-                                    o.saveChanges();
+//                                    o.saveChanges();
                                 }
                             }
                         });
