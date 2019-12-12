@@ -245,18 +245,14 @@ screens.define_action_button({
 
 
 function guardar_orden(obj, boton_guardar) {
-    console.log('GUARDANDO/ACTUALIZANDO...');
     var gui = obj.pos.gui;
     var notas = obj.pos.config.iface_orderline_notes;
     var restaurante = obj.pos.config.module_pos_restaurant;
 
     var order = obj.pos.get_order();
-    console.log('cliente: ' + order.get_client())
 //    order.printChanges();
     if (!(order.finalized)) {
         if (order.get_order_id() == 0 || order.get_order_id() == null ){
-            console.log('GUARDAR...');
-            console.log('order_id: ' + order.get_order_id());
             var orderlines = []
             if (order.get_orderlines().length > 0){
                 order.get_orderlines().forEach(function (orderline) {
@@ -319,9 +315,6 @@ function guardar_orden(obj, boton_guardar) {
                     });
             }
         }else{
-            console.log('ACTUALIZAR...');
-            console.log('order_id: ' + order.get_order_id());
-
             var orden;
             if (restaurante == true){
                 orden = {
@@ -691,33 +684,15 @@ screens.define_action_button({
 
 models.PosModel = models.PosModel.extend({
     push_and_invoice_order: function(order){
-        console.log('VALIDANDO...')
         var self = this;
         var orden = this.get_order();
-        console.log('cliente: ' + orden.get_client())
-        console.log('01')
         var invoiced = new $.Deferred();
-        console.log('02')
         if(!order.get_client()){
-            console.log('03')
             invoiced.reject({code:400, message:'Missing Customer', data:{}});
-            console.log('04')
             return invoiced;
         }
-        console.log('05')
-
-        console.log('ORDER_ID: ' + orden.get_order_id());
-        rpc.query({
-            model: 'pos.order',
-            method: 'unlink_order',
-            args: [[], orden.get_order_id()],
-        })
-        .then(function (result){
-            console.log('unlink_order result: ' + result);
-        });
 
         var order_id = this.db.add_order(order.export_as_JSON());
-        console.log('order_id: ' + order_id);
 
         this.flush_mutex.exec(function(){
             var done = new $.Deferred(); // holds the mutex
@@ -907,7 +882,6 @@ chrome.OrderSelectorWidget.include({
 
 floors.TableWidget.include({
     click_handler: function(){
-        console.log('CARGANDO...')
 
         this._super();
         var self = this;
@@ -1005,8 +979,6 @@ floors.TableWidget.include({
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
                                         o.set_order_id(ordenes[order_id].id);
                                         self.pos.set_order(o);
-                                        console.log('order_id: ' + self.pos.get_order().get_order_id());
-                                        console.log('cliente: ' + self.pos.get_order().get_client())
 
 /*
                                         rpc.query({
@@ -1031,6 +1003,25 @@ floors.TableWidget.include({
 
             });
     },
+});
+
+
+screens.PaymentScreenWidget.include({
+    finalize_validation: function(){
+        console.log('finalize_validation');
+        this._super();
+        var order = this.pos.get_order();
+        if (!(order.get_order_id() == 0 || order.get_order_id() == null )) {
+            rpc.query({
+                model: 'pos.order',
+                method: 'unlink_order',
+                args: [[], order.get_order_id()],
+            })
+            .then(function (result){
+                console.log('unlink_order result: ' + result);
+            });
+        }
+    }
 });
 
 });
