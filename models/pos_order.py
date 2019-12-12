@@ -66,6 +66,7 @@ class PosOrder(models.Model):
         return True
 
     def unlink_order(self,order_id):
+        logging.getLogger('odoo order_id').warn(order_id)
         orden = self.env['pos.order'].search([['id','=',order_id]])
         orden.sudo().unlink()
         return True
