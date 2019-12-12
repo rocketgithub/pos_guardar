@@ -251,6 +251,7 @@ function guardar_orden(obj, boton_guardar) {
     var restaurante = obj.pos.config.module_pos_restaurant;
 
     var order = obj.pos.get_order();
+    console.log('cliente: ' + order.get_client())
 //    order.printChanges();
     if (!(order.finalized)) {
         if (order.get_order_id() == 0 || order.get_order_id() == null ){
@@ -690,15 +691,21 @@ screens.define_action_button({
 
 models.PosModel = models.PosModel.extend({
     push_and_invoice_order: function(order){
+        console.log('VALIDANDO...')
         var self = this;
         var orden = this.get_order();
+        console.log('cliente: ' + orden.get_client())
+        console.log('01')
         var invoiced = new $.Deferred();
+        console.log('02')
         if(!order.get_client()){
+            console.log('03')
             invoiced.reject({code:400, message:'Missing Customer', data:{}});
+            console.log('04')
             return invoiced;
         }
+        console.log('05')
 
-        console.log('VALIDANDO...')
         console.log('ORDER_ID: ' + orden.get_order_id());
         rpc.query({
             model: 'pos.order',
@@ -999,6 +1006,7 @@ floors.TableWidget.include({
                                         o.set_order_id(ordenes[order_id].id);
                                         self.pos.set_order(o);
                                         console.log('order_id: ' + self.pos.get_order().get_order_id());
+                                        console.log('cliente: ' + self.pos.get_order().get_client())
 
 /*
                                         rpc.query({
