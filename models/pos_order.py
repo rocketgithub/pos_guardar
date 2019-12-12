@@ -20,12 +20,12 @@ class PosOrder(models.Model):
             linea_id = self.env['pos.order.line'].sudo().create(linea)
         return orden_id.name
 
-    def actualizar_referencia(self, orden_id, referencia):
-        orden = self.env['pos.order'].sudo().search([['id', '=', orden_id]])
-        orden.sudo().write({'pos_reference': referencia})
+#    def actualizar_referencia(self, orden_id, referencia):
+#        orden = self.env['pos.order'].sudo().search([['id', '=', orden_id]])
+#        orden.sudo().write({'pos_reference': referencia})
         
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
-        orders = self.env['pos.order'].search([['id', '=', orden_id]])
+        orders = self.env['pos.order'].search([['id', '=', orden_id[0]]])
         logging.warn(restaurante)
         if restaurante[0]:
             for order in orders:
@@ -33,7 +33,7 @@ class PosOrder(models.Model):
         else:
             for order in orders:
                 order.sudo().write({'partner_id': orden[0]['partner_id'], 'user_id':orden[0]['user_id']})
-        lineas = self.env['pos.order.line'].search([['order_id', 'in', orden_id]])
+        lineas = self.env['pos.order.line'].search([['order_id', '=', orden_id[0]]])
         lineas.sudo().unlink()
         for linea in orderline[0]:
             linea['order_id'] = orden_id[0]
