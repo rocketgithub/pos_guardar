@@ -1012,10 +1012,12 @@ screens.PaymentScreenWidget.include({
         this._super();
         var order = this.pos.get_order();
         if (!(order.get_order_id() == 0 || order.get_order_id() == null )) {
+            var order_id = order.get_order_id();
+            console.log('js order_id: ' + order_id);
             rpc.query({
                 model: 'pos.order',
                 method: 'unlink_order',
-                args: [[], order.get_order_id()],
+                args: [[], order_id],
             })
             .then(function (result){
                 console.log('unlink_order result: ' + result);
