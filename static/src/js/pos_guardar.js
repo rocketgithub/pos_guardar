@@ -8,6 +8,7 @@ var pos_db = require('point_of_sale.DB');
 var rpc = require('web.rpc');
 var gui = require('point_of_sale.gui');
 var core = require('web.core');
+var PopupWidget = require('point_of_sale.popups');
 var chrome = require('point_of_sale.chrome');
 var es_cargada = 0;
 var QWeb = core.qweb;
@@ -758,6 +759,26 @@ models.Order = models.Order.extend({
 })
 
 
+var PassInputPopupWidget = PopupWidget.extend({
+    template: 'PassInputPopupWidget',
+    show: function(options){
+        options = options || {};
+        this._super(options);
+
+        this.renderElement();
+        this.$('input,textarea').focus();
+    },
+    click_confirm: function(){
+        var value = this.$('input,textarea').val();
+        this.gui.close_popup();
+        if( this.options.confirm ){
+            this.options.confirm.call(this,value);
+        }
+    },
+});
+gui.define_popup({name:'passinput', widget: PassInputPopupWidget});
+
+
 chrome.OrderSelectorWidget.include({
     floor_button_click_handler: function(){
         if (this.pos.config.opcion_guardar_pedidos_mesas){
@@ -979,6 +1000,7 @@ floors.TableWidget.include({
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
                                         o.set_order_id(ordenes[order_id].id);
                                         self.pos.set_order(o);
+                                        ordenes[order_id] = null;
 
 /*
                                         rpc.query({
@@ -998,6 +1020,20 @@ floors.TableWidget.include({
                                     o.saveChanges();
                                 }
                             }
+                            for (var order_id in ordenes) {
+                                if (ordenes[order_id] != null) {
+                                    self.pos.add_new_order();
+
+                                    var o = self.pos.get_order();
+                                    o.set_customer_count(ordenes[order_id].customer_count);
+                                    self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
+                                    o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
+                                    o.set_order_id(ordenes[order_id].id);
+                                    self.pos.set_order(o);
+                                    ordenes[order_id] = null;
+                                }
+                            }
+
                         });
                 }
 
@@ -1025,5 +1061,32 @@ screens.PaymentScreenWidget.include({
         }
     }
 });
+
+
+screens.NumpadWidget.include({
+    clickDeleteLastChar: function() {
+//        this._super();
+        var self = this;
+
+        var gui = this.pos.gui;
+        self.gui.show_popup('passinput',{
+            'title': 'Ingrese clave',
+            'confirm': function(clave_empleado) {
+                if (clave_empleado == this.pos.user.pos_security_pin) {
+                    return self.state.deleteLastChar();
+                }
+                else {
+                    gui.show_popup('confirm',{
+                        'title': 'Error',
+                        'body': 'Pin de seguridad incorrecto',
+                        'confirm': function(data) {
+                        },
+                    });
+                }
+            },
+        });
+    },
+});
+
 
 });
