@@ -1064,7 +1064,7 @@ screens.PaymentScreenWidget.include({
 
 
 screens.NumpadWidget.include({
-    clickDeleteLastChar: function() {
+    clickDeleteLastCharFail: function() {
 //        this._super();
         var self = this;
 
