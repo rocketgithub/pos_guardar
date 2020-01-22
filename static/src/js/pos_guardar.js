@@ -1063,30 +1063,5 @@ screens.PaymentScreenWidget.include({
 });
 
 
-screens.NumpadWidget.include({
-    clickDeleteLastChar: function() {
-//        this._super();
-        var self = this;
-
-        var gui = this.pos.gui;
-        self.gui.show_popup('passinput',{
-            'title': 'Ingrese clave',
-            'confirm': function(clave_empleado) {
-                if (clave_empleado == this.pos.user.pos_security_pin) {
-                    return self.state.deleteLastChar();
-                }
-                else {
-                    gui.show_popup('confirm',{
-                        'title': 'Error',
-                        'body': 'Pin de seguridad incorrecto',
-                        'confirm': function(data) {
-                        },
-                    });
-                }
-            },
-        });
-    },
-});
-
 
 });
