@@ -759,25 +759,6 @@ models.Order = models.Order.extend({
 })
 
 
-var PassInputPopupWidget = PopupWidget.extend({
-    template: 'PassInputPopupWidget',
-    show: function(options){
-        options = options || {};
-        this._super(options);
-
-        this.renderElement();
-        this.$('input,textarea').focus();
-    },
-    click_confirm: function(){
-        var value = this.$('input,textarea').val();
-        this.gui.close_popup();
-        if( this.options.confirm ){
-            this.options.confirm.call(this,value);
-        }
-    },
-});
-gui.define_popup({name:'passinput', widget: PassInputPopupWidget});
-
 
 chrome.OrderSelectorWidget.include({
     floor_button_click_handler: function(){
@@ -901,9 +882,10 @@ chrome.OrderSelectorWidget.include({
     },
 });
 
+
+
 floors.TableWidget.include({
     click_handler: function(){
-
         this._super();
         var self = this;
 
@@ -1022,6 +1004,7 @@ floors.TableWidget.include({
                             }
                             for (var order_id in ordenes) {
                                 if (ordenes[order_id] != null) {
+                                    var db = self.pos.db;
                                     self.pos.add_new_order();
 
                                     var o = self.pos.get_order();
@@ -1038,9 +1021,43 @@ floors.TableWidget.include({
                 }
 
             });
+
     },
 });
 
+gui.Gui.include({
+    show_screen: function(screen_name,params,refresh,skip_close_popup) {
+        var self = this;
+        var gui = this.pos.gui;
+        var _super_sin_this = this._super;
+        var _super_con_this = _super_sin_this.bind(this);
+
+        if (screen_name == 'payment') {
+
+            gui.show_popup('passinput',{
+                'title': 'Ingrese clave',
+                'confirm': function(clave_empleado) {
+                    if (clave_empleado == this.pos.user.pos_security_pin) {
+                        _super_con_this(screen_name,params,refresh,skip_close_popup);
+                    }
+                    else {
+                        gui.show_popup('confirm',{
+                            'title': 'Error',
+                            'body': 'Pin de seguridad incorrecto',
+                            'confirm': function(data) {
+                            },
+                        });
+                    }
+                },
+            });
+        
+        }
+        else {
+            this._super(screen_name,params,refresh,skip_close_popup);
+        }
+    },
+
+});
 
 screens.PaymentScreenWidget.include({
     finalize_validation: function(){
