@@ -1026,7 +1026,7 @@ floors.TableWidget.include({
 });
 
 gui.Gui.include({
-    show_screen_: function(screen_name,params,refresh,skip_close_popup) {
+    show_screen: function(screen_name,params,refresh,skip_close_popup) {
         var self = this;
         var gui = this.pos.gui;
         var _super_sin_this = this._super;
