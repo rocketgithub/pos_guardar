@@ -1025,39 +1025,6 @@ floors.TableWidget.include({
     },
 });
 
-gui.Gui.include({
-    show_screen: function(screen_name,params,refresh,skip_close_popup) {
-        var self = this;
-        var gui = this.pos.gui;
-        var _super_sin_this = this._super;
-        var _super_con_this = _super_sin_this.bind(this);
-
-        if (screen_name == 'payment') {
-
-            gui.show_popup('passinput',{
-                'title': 'Ingrese clave',
-                'confirm': function(clave_empleado) {
-                    if (clave_empleado == this.pos.user.pos_security_pin) {
-                        _super_con_this(screen_name,params,refresh,skip_close_popup);
-                    }
-                    else {
-                        gui.show_popup('confirm',{
-                            'title': 'Error',
-                            'body': 'Pin de seguridad incorrecto',
-                            'confirm': function(data) {
-                            },
-                        });
-                    }
-                },
-            });
-        
-        }
-        else {
-            this._super(screen_name,params,refresh,skip_close_popup);
-        }
-    },
-
-});
 
 screens.PaymentScreenWidget.include({
     finalize_validation: function(){
