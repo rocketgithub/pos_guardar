@@ -264,6 +264,8 @@ function guardar_orden(obj, boton_guardar) {
                             'qty': orderline.get_quantity(),
                             'discount': orderline.get_discount(),
                             'price_unit': orderline.get_unit_price(),
+                            'price_subtotal': orderline.get_price_without_tax(),
+                            'price_subtotal_incl': orderline.get_price_with_tax(),
                             'note': orderline.get_note()
                         })
                     }else{
@@ -272,7 +274,9 @@ function guardar_orden(obj, boton_guardar) {
                             'product_id': orderline.get_product().id,
                             'qty': orderline.get_quantity(),
                             'discount': orderline.get_discount(),
-                            'price_unit': orderline.get_unit_price()
+                            'price_unit': orderline.get_unit_price(),
+                            'price_subtotal': orderline.get_price_without_tax(),
+                            'price_subtotal_incl': orderline.get_price_with_tax(),
                         })
                     }
 
@@ -286,6 +290,10 @@ function guardar_orden(obj, boton_guardar) {
                         'user_id': obj.pos.get_cashier().id,
                         'customer_count': order.get_customer_count(),
                         'table_id': order.table.id,
+                        'amount_tax': order.get_total_tax(),
+                        'amount_total': order.get_total_with_tax(),
+                        'amount_paid': 0,
+                        'amount_return': 0,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
                     }
@@ -294,6 +302,10 @@ function guardar_orden(obj, boton_guardar) {
                         'partner_id': order.get_client().id,
                         'session_id': obj.pos.config.session_save_order[0],
                         'user_id': obj.pos.get_cashier().id,
+                        'amount_tax': order.get_total_tax(),
+                        'amount_total': order.get_total_with_tax(),
+                        'amount_paid': 0,
+                        'amount_return': 0,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
                     }
@@ -321,12 +333,21 @@ function guardar_orden(obj, boton_guardar) {
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': obj.pos.get_cashier().id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
             }else{
                 orden = {
                     'partner_id': order.get_client().id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
+
 //                    'pos_reference': order.name,
                     'user_id': obj.pos.get_cashier().id
                 }
@@ -343,6 +364,8 @@ function guardar_orden(obj, boton_guardar) {
                         'qty': orderline.get_quantity(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'note': orderline.get_note()
                     })
                 }else{
@@ -350,6 +373,8 @@ function guardar_orden(obj, boton_guardar) {
                         'order_id':0,
                         'product_id': orderline.get_product().id,
                         'qty': orderline.get_quantity(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price()
                     })
@@ -396,6 +421,8 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'order_id':0,
                         'product_id': orderline.get_product().id,
                         'qty': orderline.get_quantity(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price(),
                         'note': orderline.get_note()
@@ -405,6 +432,8 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'order_id':0,
                         'product_id': orderline.get_product().id,
                         'qty': orderline.get_quantity(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price()
                     })
@@ -420,6 +449,11 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'user_id': this.pos.get_cashier().id,
                     'customer_count': order.get_customer_count(),
                     'table_id': order.table.id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
+
 //                    'pos_reference': order.name,
                     'company_id': this.pos.config.company_id[0]
                 }
@@ -428,6 +462,11 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                     'partner_id': order.get_client().id,
                     'session_id': this.pos.config.session_save_order[0],
                     'user_id': this.pos.get_cashier().id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
+
 //                    'pos_reference': order.name,
                     'company_id': this.pos.config.company_id[0]
                 }
@@ -455,12 +494,22 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': this.pos.get_cashier().id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
+
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
             }else{
                 orden = {
                     'partner_id': order.get_client().id,
+                    'amount_tax': order.get_total_tax(),
+                    'amount_total': order.get_total_with_tax(),
+                    'amount_paid': 0,
+                    'amount_return': 0,
+
 //                    'pos_reference': order.name,
                     'user_id': this.pos.get_cashier().id
                 }
@@ -476,6 +525,8 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'product_id': orderline.get_product().id,
                         'qty': orderline.get_quantity(),
                         'discount': orderline.get_discount(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'price_unit': orderline.get_unit_price(),
                         'note': orderline.get_note()
                     })
@@ -484,6 +535,8 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                         'order_id':0,
                         'product_id': orderline.get_product().id,
                         'qty': orderline.get_quantity(),
+                        'price_subtotal': orderline.get_price_without_tax(),
+                        'price_subtotal_incl': orderline.get_price_with_tax(),
                         'discount': orderline.get_discount(),
                         'price_unit': orderline.get_unit_price()
                     })
@@ -763,11 +816,14 @@ models.Order = models.Order.extend({
 chrome.OrderSelectorWidget.include({
     floor_button_click_handler: function(){
         if (this.pos.config.opcion_guardar_pedidos_mesas){
+            console.log('prueba')
             var orders = this.pos.get_order_list();
             for (var i = 0; i < orders.length; i++) {
                 this.pos.set_order(orders[i]);
                 guardar_orden(this, false);
             }
+        }else{
+            this.pos.set_table(null);
         }
     },
 
@@ -794,6 +850,8 @@ chrome.OrderSelectorWidget.include({
                                     'qty': orderline.get_quantity(),
                                     'discount': orderline.get_discount(),
                                     'price_unit': orderline.get_unit_price(),
+                                    'price_subtotal': orderline.get_price_without_tax(),
+                                    'price_subtotal_incl': orderline.get_price_with_tax(),
                                     'note': orderline.get_note()
                                 })
                             }else{
@@ -802,7 +860,9 @@ chrome.OrderSelectorWidget.include({
                                     'product_id': orderline.get_product().id,
                                     'qty': orderline.get_quantity(),
                                     'discount': orderline.get_discount(),
-                                    'price_unit': orderline.get_unit_price()
+                                    'price_unit': orderline.get_unit_price(),
+                                    'price_subtotal': orderline.get_price_without_tax(),
+                                    'price_subtotal_incl': orderline.get_price_with_tax()
                                 })
                             }
 
@@ -814,6 +874,11 @@ chrome.OrderSelectorWidget.include({
                             'user_id': this.pos.get_cashier().id,
                             'customer_count': order.get_customer_count(),
                             'table_id': order.table.id,
+                            'amount_tax': order.get_total_tax(),
+                            'amount_total': order.get_total_with_tax(),
+                            'amount_paid': 0,
+                            'amount_return': 0,
+
 //                            'pos_reference': order.name,
                             'company_id': this.pos.config.company_id[0]
                         }
@@ -854,6 +919,8 @@ chrome.OrderSelectorWidget.include({
                                 'qty': orderline.get_quantity(),
                                 'discount': orderline.get_discount(),
                                 'price_unit': orderline.get_unit_price(),
+                                'price_subtotal': orderline.get_price_without_tax(),
+                                'price_subtotal_incl': orderline.get_price_with_tax(),
                                 'note': orderline.get_note()
                             })
                         }else{
@@ -862,7 +929,9 @@ chrome.OrderSelectorWidget.include({
                                 'product_id': orderline.get_product().id,
                                 'qty': orderline.get_quantity(),
                                 'discount': orderline.get_discount(),
-                                'price_unit': orderline.get_unit_price()
+                                'price_unit': orderline.get_unit_price(),
+                                'price_subtotal': orderline.get_price_without_tax(),
+                                'price_subtotal_incl': orderline.get_price_with_tax(),
                             })
                         }
                     });
