@@ -186,7 +186,8 @@ var LoadOrderButton = screens.ActionButtonWidget.extend({
                                     var producto = db.get_product_by_id(orderslines[i]['product_id'][0])
                                     cantidad = orderslines[i]['qty'];
                                     var precio = orderslines[i]['price_unit'];
-                                    orden.add_product(producto,{quantity: cantidad,cargar_extras: false});
+                                    console.log(orderslines[i])
+                                    orden.add_product(producto,{quantity: cantidad,cargar_extras: false,discount:orderslines[i]['discount']});
                                     orden.set_order_id(orden_id_cargada);
                                 }
                                 self.pos.set_cashier({'id': partner[0].user_id[0]});
