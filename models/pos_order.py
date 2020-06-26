@@ -18,12 +18,13 @@ class PosOrder(models.Model):
         for linea in orderline[0]:
             linea['order_id'] = orden_id.id
             linea_id = self.env['pos.order.line'].sudo().create(linea)
+            linea_id._onchange_product_id()
         return orden_id.name
 
 #    def actualizar_referencia(self, orden_id, referencia):
 #        orden = self.env['pos.order'].sudo().search([['id', '=', orden_id]])
 #        orden.sudo().write({'pos_reference': referencia})
-        
+
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
         orders = self.env['pos.order'].search([['id', '=', orden_id[0]]])
         logging.warn(restaurante)
@@ -38,6 +39,7 @@ class PosOrder(models.Model):
         for linea in orderline[0]:
             linea['order_id'] = orden_id[0]
             linea_id = self.env['pos.order.line'].sudo().create(linea)
+            linea_id._onchange_product_id()
         return True
 
     def guardar_pedido(self,ordenes,orderlines,sesion):
@@ -61,6 +63,7 @@ class PosOrder(models.Model):
                     'price_unit': linea['price_unit']
                 }
                 linea_id = self.env['pos.order.line'].sudo().create(order_line)
+                linea_id._onchange_product_id()
         ordenes = self.env['pos.order'].search([['id','in',ordenes_a_eliminar]])
         ordenes.sudo().unlink()
         return True
