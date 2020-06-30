@@ -17,9 +17,9 @@ class PosOrder(models.Model):
         orden_id = self.env['pos.order'].sudo().create(orden[0])
         for linea in orderline[0]:
             linea['order_id'] = orden_id.id
+            linea['company_id'] = orden_id.company_id.id
             linea_id = self.env['pos.order.line'].sudo().create(linea)
             linea_id._onchange_product_id()
-            linea_id._get_tax_ids_after_fiscal_position()
         return orden_id.name
 
 #    def actualizar_referencia(self, orden_id, referencia):
@@ -39,9 +39,9 @@ class PosOrder(models.Model):
         lineas.sudo().unlink()
         for linea in orderline[0]:
             linea['order_id'] = orden_id[0]
+            linea['company_id'] = orders[0].company_id.id
             linea_id = self.env['pos.order.line'].sudo().create(linea)
             linea_id._onchange_product_id()
-            linea_id._get_tax_ids_after_fiscal_position()
         return True
 
     def guardar_pedido(self,ordenes,orderlines,sesion):
@@ -59,6 +59,7 @@ class PosOrder(models.Model):
             for linea in orderlines[0]:
                 order_line = {
                     'order_id': orden_id.id,
+                    'company_id': orden_id.company_id.id,
                     'product_id': linea['product_id'][0],
                     'qty': linea['qty'],
                     'discount': linea['discount'],
@@ -66,7 +67,6 @@ class PosOrder(models.Model):
                 }
                 linea_id = self.env['pos.order.line'].sudo().create(order_line)
                 linea_id._onchange_product_id()
-                linea_id._get_tax_ids_after_fiscal_position()
         ordenes = self.env['pos.order'].search([['id','in',ordenes_a_eliminar]])
         ordenes.sudo().unlink()
         return True
