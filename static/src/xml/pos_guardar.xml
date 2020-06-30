@@ -19,4 +19,11 @@
         </div>
     </t>
 
+    <t t-extend="TableWidget">
+        <t t-jquery='.table' t-operation='append'>
+            <span t-att-class='"customer-count " + (widget.notifications.printing ? "notify-printing":"") + (widget.notifications.skipped ? "notify-skipped" : "")'><t t-esc='widget.customer_count'/></span>
+        </t>
+    </t>
+
+
 </templates>
