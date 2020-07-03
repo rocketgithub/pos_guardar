@@ -366,7 +366,10 @@ function guardar_orden(obj, boton_guardar) {
                 });
         }
     }
-    obj.pos.delete_current_order();
+
+    if (boton_guardar){
+        obj.pos.delete_current_order();
+    }
 }
 
 
@@ -702,7 +705,7 @@ models.PosModel = models.PosModel.extend({
             this.set_table(table);
 
             // cambiamos de mesa por medio de funcion transferir_pedido al hacer la transferencia
-            var order_id = this.get_order().attributes.order_id; 
+            var order_id = this.get_order().attributes.order_id;
             rpc.query({
                     model: 'pos.order',
                     method: 'transferir_pedido',
@@ -818,6 +821,8 @@ chrome.OrderSelectorWidget.include({
                 this.pos.set_order(orders[i]);
                 guardar_orden(this, false);
             }
+            // this.pos.get_customer_count(this.table);
+            this.pos.set_table(null);
         }
     },
 

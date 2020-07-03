@@ -6,6 +6,9 @@
             <xpath expr="." position="inside">
                 <script type="text/javascript" src="/pos_guardar/static/src/js/pos_guardar.js"></script>
             </xpath>
+            <xpath expr="//link[@id='pos-stylesheet']" position="after">
+                <link rel="stylesheet" href="/pos_guardar/static/src/css/pos_guardar.css" />
+            </xpath>
         </template>
 
     </data>
