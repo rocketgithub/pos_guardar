@@ -89,3 +89,12 @@ class PosOrderLine(models.Model):
             condiciones[0],
             campos[0], order='order_id desc')
         return lines
+
+    def unlink_order_line(self,order_line_id):
+        linea_id = self.env['pos.order.line'].sudo().search([['id','=',order_line_id]])
+        orden_id = linea_id.order_id
+        linea_id.sudo().unlink()
+        for l in orden_id.lines:
+            l._onchange_product_id()
+        orden_id._onchange_amount_all()
+        return True

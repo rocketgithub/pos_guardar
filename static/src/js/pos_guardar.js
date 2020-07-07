@@ -2,6 +2,7 @@ odoo.define('pos_guardar.pos_guardar', function (require) {
 "use strict";
 
 var floors = require('pos_restaurant.floors');
+var splitbill = require('pos_restaurant.splitbill');
 var screens = require('point_of_sale.screens');
 var models = require('point_of_sale.models');
 var pos_db = require('point_of_sale.DB');
@@ -812,6 +813,22 @@ models.Order = models.Order.extend({
     },
 })
 
+var _super_order_line = models.Orderline.prototype;
+models.Orderline = models.Orderline.extend({
+    initialize: function() {
+        _super_order_line.initialize.apply(this,arguments);
+        this.linea_id_cargada = this.linea_id_cargada || false;
+    },
+
+    set_linea_id_cargada: function(linea_id_cargada){
+        this.linea_id_cargada = linea_id_cargada;
+        this.trigger('change',this);
+    },
+
+    get_linea_id_cargada: function(linea_id_cargada){
+        return this.linea_id_cargada;
+    },
+})
 
 
 chrome.OrderSelectorWidget.include({
@@ -1069,6 +1086,7 @@ floors.TableWidget.include({
                                     if (notas || notas != null){
                                         o.get_last_orderline().set_note(lines[i]['note']);
                                     }
+                                    o.get_last_orderline().set_linea_id_cargada(lines[i]['id']);
                                     o.saveChanges();
                                 }
                             }
@@ -1116,6 +1134,81 @@ screens.PaymentScreenWidget.include({
     }
 });
 
+
+splitbill.SplitbillScreenWidget.include({
+
+    pay: function(order,neworder,splitlines){
+        var orderlines = order.get_orderlines();
+        var empty = true;
+        var full  = true;
+        var lineas = []
+        for(var i = 0; i < orderlines.length; i++){
+            lineas.push(orderlines[i])
+            var id = orderlines[i].id;
+            var split = splitlines[id];
+            if(!split){
+                full = false;
+
+            }else{
+                if(split.quantity){
+                    rpc.query({
+                        model: 'pos.order.line',
+                        method: 'unlink_order_line',
+                        args: [[], orderlines[i]['linea_id_cargada']],
+                    })
+                    .then(function (result){
+                        console.log('unlink_order_line result: ' + result);
+                    });
+
+                    empty = false;
+                    if(split.quantity !== orderlines[i].get_quantity()){
+                        full = false;
+                    }
+                }
+            }
+        }
+
+        if(empty){
+            return;
+        }
+
+        delete neworder.temporary;
+
+        if(full){
+            this.gui.show_screen('payment');
+        }else{
+            for(var id in splitlines){
+                var split = splitlines[id];
+                var line  = order.get_orderline(parseInt(id));
+                line.set_quantity(line.get_quantity() - split.quantity, 'do not recompute unit price');
+                if(Math.abs(line.get_quantity()) < 0.00001){
+                    order.remove_orderline(line);
+                }
+                delete splitlines[id];
+            }
+            neworder.set_screen_data('screen','payment');
+
+            // for the kitchen printer we assume that everything
+            // has already been sent to the kitchen before splitting
+            // the bill. So we save all changes both for the old
+            // order and for the new one. This is not entirely correct
+            // but avoids flooding the kitchen with unnecessary orders.
+            // Not sure what to do in this case.
+
+            if ( neworder.saveChanges ) {
+                order.saveChanges();
+                neworder.saveChanges();
+            }
+
+            neworder.set_customer_count(1);
+            order.set_customer_count(order.get_customer_count() - 1);
+
+            this.pos.get('orders').add(neworder);
+            this.pos.set('selectedOrder',neworder);
+        }
+    },
+
+});
 
 
 });
