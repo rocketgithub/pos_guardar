@@ -791,7 +791,11 @@ screens.define_action_button({
 
 var _super_order = models.Order.prototype;
 models.Order = models.Order.extend({
-
+    initialize: function() {
+        _super_order.initialize.apply(this,arguments);
+        this.transferencia = false;
+        this.save_to_db();
+    },
     set_order_id: function(id) {
         this.set({
             order_id: id,
@@ -980,9 +984,12 @@ floors.TableWidget.include({
         //Borra todas las pestañas de la pantalla del punto de venta.
         //Cuando hay muchas pestañas creadas (hacia la derecha), desaparecen el botón para eliminar pestañas.
         var orders = this.pos.get_table_orders(this.table);
+        var orden_transferida = false;
         for (var i = 0; i < orders.length; i++) {
-            self.pos.set_order(orders[i]);
-            self.pos.delete_current_order();
+            if (orders[i].transferencia == false){
+                self.pos.set_order(orders[i]);
+                self.pos.delete_current_order();
+            }
         }
 
 
@@ -994,9 +1001,15 @@ floors.TableWidget.include({
         var pos_reference_ids = [];
         var order_id;
         var orders = this.pos.get_table_orders(this.table);
+        var orden_a_transferir = false;
         for (var i = 0; i < orders.length; i++) {
-            alert(orders[i].name);
-            pos_reference_ids.push(orders[i].name);
+            if (orders[i].transferencia == false){
+                alert(orders[i].name);
+                pos_reference_ids.push(orders[i].name);
+            }else{
+                orden_a_transferir = true
+            }
+
         }
 
         /*
@@ -1023,7 +1036,12 @@ floors.TableWidget.include({
             })
             .then(function (orders){
                 if (orders.length == 0) {
-                    self.pos.add_new_order();
+                    // Verificamos que si existe alguna orden a transferir a otra mesa,asi no cree un pedido en blanco al lado derecho
+                    // nos apoya a que al hacer la tranferencia en la mesa destino, aparesca seleccionada por default el pedido trasladado
+                    if (orden_a_transferir == false){
+                        self.pos.add_new_order();
+                    }
+
                 }
                 else if (orders.length > 0) {
                     var ordenes = {};
@@ -1209,6 +1227,56 @@ splitbill.SplitbillScreenWidget.include({
     },
 
 });
+
+var _super_posmodel = models.PosModel.prototype;
+models.PosModel = models.PosModel.extend({
+    transfer_order_to_different_table: function () {
+        this.get_order().transferencia = true;
+        this.order_to_transfer_to_different_table = this.get_order();
+
+        // go to 'floors' screen, this will set the order to null and
+        // eventually this will cause the gui to go to its
+        // default_screen, which is 'floors'
+        this.set_table(null);
+    },
+
+
+
+    // changes the current table.
+    set_table: function(table) {
+        if (!table) { // no table ? go back to the floor plan, see ScreenSelector
+            this.set_order(null);
+        } else if (this.order_to_transfer_to_different_table) {
+            this.order_to_transfer_to_different_table.table = table;
+            this.order_to_transfer_to_different_table.save_to_db();
+            this.order_to_transfer_to_different_table = null;
+            // set this table
+            this.set_table(table);
+
+            var order_id = this.get_order().attributes.order_id;
+            rpc.query({
+                    model: 'pos.order',
+                    method: 'transferir_pedido',
+                    args: [[],[order_id],[table.id]],
+                })
+                .then(function (result){
+
+                });
+
+            
+
+        } else {
+            this.table = table;
+            var orders = this.get_order_list();
+            if (orders.length) {
+                this.set_order(orders[0]); // and go to the first one ...
+            } else {
+                this.add_new_order();  // or create a new order with the current table
+            }
+        }
+    },
+
+})
 
 
 });

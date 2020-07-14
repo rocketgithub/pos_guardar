@@ -26,6 +26,14 @@ class PosOrder(models.Model):
 #        orden = self.env['pos.order'].sudo().search([['id', '=', orden_id]])
 #        orden.sudo().write({'pos_reference': referencia})
 
+    def transferir_pedido(self, orden_id, mesa_id):
+        orders = self.env['pos.order'].search([['id', '=', orden_id[0]]])
+        if orders:
+            for order in orders:
+                order.sudo().write({'table_id': mesa_id[0]})
+        return True
+
+
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
         orders = self.env['pos.order'].search([['id', '=', orden_id[0]]])
         logging.warn(restaurante)
