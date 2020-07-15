@@ -955,6 +955,8 @@ floors.TableWidget.include({
             if (orders[i].transferencia == false){
                 self.pos.set_order(orders[i]);
                 self.pos.delete_current_order();
+            }else{
+                self.pos.delete_current_order();
             }
 
         }
