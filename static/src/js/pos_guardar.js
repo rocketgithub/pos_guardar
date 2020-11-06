@@ -940,6 +940,34 @@ chrome.OrderSelectorWidget.include({
 
 
 floors.TableWidget.include({
+    init: function(parent, options){
+        var self = this;
+        this._super(parent, options);
+        this.cantidad_ordenes = 0;
+    },
+    obtener_cantidad: function(){
+        var self = this;
+        rpc.query({
+                model: 'pos.order',
+                method: 'search_read',
+                args: [[['table_id', '=', self.table.id ]], ['id']],
+            })
+            .then(function (ordenes){
+                if (ordenes.length > 0 ){
+                    self.cantidad_ordenes = ordenes.length;
+                    self.renderElement();
+                }
+            });
+    },
+    renderElement: function(){
+        var self = this;
+        this._super();
+        var intervalor = setInterval(function() {
+            self.obtener_cantidad()
+            clearInterval(intervalor);
+        }, 33000);
+
+    },
     click_handler: function(){
         this._super();
         var self = this;
