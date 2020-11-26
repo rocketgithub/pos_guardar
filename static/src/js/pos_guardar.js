@@ -944,17 +944,23 @@ floors.TableWidget.include({
         var self = this;
         this._super(parent, options);
         this.cantidad_ordenes = 0;
+        this.cantidad_clientes = 0;
     },
     obtener_cantidad: function(){
         var self = this;
         rpc.query({
                 model: 'pos.order',
                 method: 'search_read',
-                args: [[['table_id', '=', self.table.id ]], ['id']],
+                args: [[['table_id', '=', self.table.id ],['state', '=', 'draft']], ['id','customer_count']],
             })
             .then(function (ordenes){
+                var cantidad_clientes = 0;
                 if (ordenes.length > 0 ){
                     self.cantidad_ordenes = ordenes.length;
+                    for (var i = 0; i < ordenes.length; i++){
+                        cantidad_clientes += ordenes[i].customer_count
+                    }
+                    self.cantidad_clientes = cantidad_clientes;
                     self.renderElement();
                 }
             });

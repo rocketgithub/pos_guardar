@@ -34,8 +34,8 @@
                 <span class='label'>
                     <t t-esc='widget.table.name' />
                 </span>
-                <span class="table-seats"><t t-esc="widget.table.seats" /></span>
-                <span t-att-class='"customer-count " + (widget.notifications.printing ? "notify-printing":"") + (widget.notifications.skipped ? "notify-skipped" : "")'><t t-esc='widget.customer_count'/></span>
+                <span class="table-seats"><t t-esc="widget.cantidad_clientes" /></span>
+                <span t-att-class='"customer-count " + (widget.notifications.printing ? "notify-printing":"") + (widget.notifications.skipped ? "notify-skipped" : "")'><t t-esc='widget.cantidad_clientes'/></span>
             </div>
         </t>
     </t>
