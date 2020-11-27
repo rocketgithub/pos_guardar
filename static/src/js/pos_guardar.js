@@ -970,6 +970,7 @@ floors.TableWidget.include({
         this._super();
         var intervalor = setInterval(function() {
             self.obtener_cantidad()
+            self.renderElement()
             clearInterval(intervalor);
         }, 33000);
 
