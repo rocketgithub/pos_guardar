@@ -955,14 +955,20 @@ floors.TableWidget.include({
             })
             .then(function (ordenes){
                 var cantidad_clientes = 0;
+                self.cantidad_ordenes = 0;
+                self.cantidad_clientes = 0;
                 if (ordenes.length > 0 ){
                     self.cantidad_ordenes = ordenes.length;
                     for (var i = 0; i < ordenes.length; i++){
                         cantidad_clientes += ordenes[i].customer_count
                     }
                     self.cantidad_clientes = cantidad_clientes;
-                    self.renderElement();
+                    // self.renderElement();
                 }
+                self.renderElement();
+                // else{
+                //     self.renderElement();
+                // }
             });
     },
     renderElement: function(){
@@ -970,7 +976,6 @@ floors.TableWidget.include({
         this._super();
         var intervalor = setInterval(function() {
             self.obtener_cantidad()
-            self.renderElement()
             clearInterval(intervalor);
         }, 33000);
 
