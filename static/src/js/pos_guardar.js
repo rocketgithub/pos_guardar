@@ -963,12 +963,10 @@ floors.TableWidget.include({
                         cantidad_clientes += ordenes[i].customer_count
                     }
                     self.cantidad_clientes = cantidad_clientes;
-                    // self.renderElement();
                 }
+            })
+            .always(function (){
                 self.renderElement();
-                // else{
-                //     self.renderElement();
-                // }
             });
     },
     renderElement: function(){
