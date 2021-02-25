@@ -35,7 +35,11 @@ class PosOrder(models.Model):
         logging.warn(restaurante)
         if restaurante[0]:
             for order in orders:
-                order.sudo().write({'partner_id': orden[0]['partner_id'], 'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                if 'empleado_id' in orden[0]:
+                    order.sudo().write({'partner_id': orden[0]['partner_id'], 'employee_id': orden[0]['empleado_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                else:
+                    order.sudo().write({'partner_id': orden[0]['partner_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+
         else:
             for order in orders:
                 order.sudo().write({'partner_id': orden[0]['partner_id'], 'user_id':orden[0]['user_id']})
