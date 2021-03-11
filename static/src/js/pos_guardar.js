@@ -1129,7 +1129,6 @@ floors.TableWidget.include({
                                 if (ordenes[order_id] != null) {
                                     var db = self.pos.db;
                                     self.pos.add_new_order();
-
                                     var o = self.pos.get_order();
                                     o.set_customer_count(ordenes[order_id].customer_count);
                                     self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
