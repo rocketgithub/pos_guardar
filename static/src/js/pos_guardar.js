@@ -285,6 +285,8 @@ function guardar_orden(obj, boton_guardar) {
                         'session_id': obj.pos.config.session_save_order[0],
                         'user_id': obj.pos.get_cashier().id,
                         'customer_count': order.get_customer_count(),
+                        'employee_id': obj.pos.get_empleado().id,
+                        'vendedor_id': obj.pos.get_vendedor().id,
                         'table_id': order.table.id,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
@@ -321,6 +323,8 @@ function guardar_orden(obj, boton_guardar) {
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': obj.pos.get_cashier().id,
+                    'empleado_id': obj.pos.get_empleado().id,
+                    'vendedor_id': obj.pos.get_vendedor().id,
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
@@ -458,6 +462,7 @@ var SaveOrderButton = screens.ActionButtonWidget.extend({
                 orden = {
                     'partner_id': order.get_client().id,
                     'user_id': this.pos.get_cashier().id,
+                    'empleado_id': this.pos.get_empleado().id,
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
@@ -868,6 +873,7 @@ chrome.OrderSelectorWidget.include({
                             'session_id': this.pos.config.session_save_order[0],
                             'user_id': this.pos.get_cashier().id,
                             'customer_count': order.get_customer_count(),
+                            'employee_id': this.pos.get_empleado(),
                             'table_id': order.table.id,
 //                            'pos_reference': order.name,
                             'company_id': this.pos.config.company_id[0]
@@ -1040,7 +1046,7 @@ floors.TableWidget.include({
         rpc.query({
                 model: 'pos.order',
                 method: 'buscar_pedidos',
-                args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count']]],
+                args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count','employee_id','vendedor_id']]],
             })
             .then(function (orders){
                 if (orders.length == 0) {
@@ -1091,6 +1097,10 @@ floors.TableWidget.include({
                                         order_id = lines[i].order_id[0];
                                         var o = self.pos.get_order();
                                         o.set_customer_count(ordenes[order_id].customer_count);
+                                        if (!self.pos.get_empleado()){
+                                            self.pos.set_empleado(ordenes[order_id].employee_id[0])
+                                        }
+                                        self.pos.set_vendedor(ordenes[order_id].vendedor_id[0])
                                         self.pos.set_cashier({'id': ordenes[order_id].user_id[0]});
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
                                         o.set_order_id(ordenes[order_id].id);
