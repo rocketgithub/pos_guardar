@@ -956,8 +956,8 @@ floors.TableWidget.include({
         var self = this;
         rpc.query({
                 model: 'pos.order',
-                method: 'search_read',
-                args: [[['table_id', '=', self.table.id ],['state', '=', 'draft']], ['id','customer_count']],
+                method: 'buscar_pedidos',
+                args: [[],[[['table_id', '=', self.table.id ],['state', '=', 'draft']]],[['id', 'customer_count']]],
             })
             .then(function (ordenes){
                 var cantidad_clientes = 0;
