@@ -761,15 +761,26 @@ models.Order = models.Order.extend({
 
 
 chrome.OrderSelectorWidget.include({
-    floor_button_click_handler: function(){
-        if (this.pos.config.opcion_guardar_pedidos_mesas){
-            var orders = this.pos.get_order_list();
-            for (var i = 0; i < orders.length; i++) {
-                this.pos.set_order(orders[i]);
-                guardar_orden(this, false);
-            }
-        }
-    },
+  floor_button_click_handler: function(){
+    var pendiente_impresion = this.pos.get_order().hasChangesToPrint();
+    var gui = this.pos.gui;
+
+    if (pendiente_impresion == false){
+      if (this.pos.config.opcion_guardar_pedidos_mesas){
+          var orders = this.pos.get_order_list();
+          for (var i = 0; i < orders.length; i++) {
+              this.pos.set_order(orders[i]);
+              guardar_orden(this, false);
+          }
+      }
+    }
+    else {
+      gui.show_popup('confirm',{
+          'title': 'Error',
+          'body': 'Pedidos pendientes de enviar',
+      });
+    }
+  },
 
     floor_button_click_handler2: function(){
         var self = this;
@@ -1050,7 +1061,7 @@ gui.Gui.include({
                     }
                 },
             });
-        
+
         }
         else {
             this._super(screen_name,params,refresh,skip_close_popup);
