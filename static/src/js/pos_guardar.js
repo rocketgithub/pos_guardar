@@ -819,17 +819,26 @@ models.Order = models.Order.extend({
 
 
 chrome.OrderSelectorWidget.include({
-    floor_button_click_handler: function(){
-        if (this.pos.config.opcion_guardar_pedidos_mesas){
-            var orders = this.pos.get_order_list();
-            for (var i = 0; i < orders.length; i++) {
-                this.pos.set_order(orders[i]);
-                guardar_orden(this, false);
-            }
-            // this.pos.get_customer_count(this.table);
-            this.pos.set_table(null);
-        }
-    },
+  floor_button_click_handler: function(){
+    var pendiente_impresion = this.pos.get_order().hasChangesToPrint();
+    var gui = this.pos.gui;
+
+    if (pendiente_impresion == false){
+      if (this.pos.config.opcion_guardar_pedidos_mesas){
+          var orders = this.pos.get_order_list();
+          for (var i = 0; i < orders.length; i++) {
+              this.pos.set_order(orders[i]);
+              guardar_orden(this, false);
+          }
+      }
+    }
+    else {
+      gui.show_popup('confirm',{
+          'title': 'Error',
+          'body': 'Pedidos pendientes de enviar',
+      });
+    }
+  },
 
     floor_button_click_handler2: function(){
         var self = this;
@@ -1147,6 +1156,39 @@ floors.TableWidget.include({
     },
 });
 
+gui.Gui.include({
+    show_screen_: function(screen_name,params,refresh,skip_close_popup) {
+        var self = this;
+        var gui = this.pos.gui;
+        var _super_sin_this = this._super;
+        var _super_con_this = _super_sin_this.bind(this);
+
+        if (screen_name == 'payment') {
+
+            gui.show_popup('passinput',{
+                'title': 'Ingrese clave',
+                'confirm': function(clave_empleado) {
+                    if (clave_empleado == this.pos.user.pos_security_pin) {
+                        _super_con_this(screen_name,params,refresh,skip_close_popup);
+                    }
+                    else {
+                        gui.show_popup('confirm',{
+                            'title': 'Error',
+                            'body': 'Pin de seguridad incorrecto',
+                            'confirm': function(data) {
+                            },
+                        });
+                    }
+                },
+            });
+
+        }
+        else {
+            this._super(screen_name,params,refresh,skip_close_popup);
+        }
+    },
+
+});
 
 screens.PaymentScreenWidget.include({
     finalize_validation: function(){
