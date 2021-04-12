@@ -692,6 +692,47 @@ screens.define_action_button({
 
 var _super_posmodel = models.PosModel.prototype;
 models.PosModel = models.PosModel.extend({
+  initialize: function(session, attributes) {
+    _super_posmodel.initialize.apply(this,arguments);
+    this.ordenes_guardadas = {};
+  },
+  load_orders: function(){
+    _super_posmodel.add_new_order.apply(this);
+    var self = this;
+    var intervalor = setInterval(function() {
+        self.obtener_cantidad();
+        clearInterval(intervalor);
+    }, 30000);
+  },
+    obtener_cantidad: function(){
+        var self = this;
+        console.log(self)
+        rpc.query({
+                model: 'pos.order',
+                method: 'buscar_pedidos',
+                args: [[],[[['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
+            })
+            .then(function (ordenes){
+                console.log('ordenes')
+                console.log(ordenes)
+                if (ordenes.length > 0 ){
+                    self.ordenes_guardadas = {}
+                    for (var i = 0; i < ordenes.length; i++){
+                        if (ordenes[i].table_id[0] in self.ordenes_guardadas){
+                            self.ordenes_guardadas[ordenes[i].table_id[0]]['clientes'] += ordenes[i].customer_count;
+                            self.ordenes_guardadas[ordenes[i].table_id[0]]['ordenes'] = ordenes.length;
+                        }else{
+                            self.ordenes_guardadas[ordenes[i].table_id[0]] ={'clientes': ordenes[i].customer_count,'ordenes': ordenes.length}
+                        }
+                    }
+
+                }
+            })
+            .always(function (){
+                console.log('render test')
+                self.load_orders();
+            });
+    },
     transfer_order_to_different_table: function () {
         this.get_order().transferencia = true;
         this.order_to_transfer_to_different_table = this.get_order();
@@ -962,27 +1003,16 @@ floors.TableWidget.include({
         this.cantidad_clientes = 0;
     },
     obtener_cantidad: function(){
-        var self = this;
-        rpc.query({
-                model: 'pos.order',
-                method: 'buscar_pedidos',
-                args: [[],[[['table_id', '=', self.table.id ],['state', '=', 'draft']]],[['id', 'customer_count']]],
-            })
-            .then(function (ordenes){
-                var cantidad_clientes = 0;
-                self.cantidad_ordenes = 0;
-                self.cantidad_clientes = 0;
-                if (ordenes.length > 0 ){
-                    self.cantidad_ordenes = ordenes.length;
-                    for (var i = 0; i < ordenes.length; i++){
-                        cantidad_clientes += ordenes[i].customer_count
-                    }
-                    self.cantidad_clientes = cantidad_clientes;
-                }
-            })
-            .always(function (){
-                self.renderElement();
-            });
+      var self = this;
+      if (Object.keys(self.pos.ordenes_guardadas).length > 0){
+          if (self.table.id in self.pos.ordenes_guardadas){
+              self.cantidad_ordenes = self.pos.ordenes_guardadas[self.table.id]['ordenes'];
+              self.cantidad_clientes = self.pos.ordenes_guardadas[self.table.id]['clientes']
+              self.renderElement();
+          }
+
+      }
+      self.renderElement();
     },
     renderElement: function(){
         var self = this;
@@ -990,7 +1020,7 @@ floors.TableWidget.include({
         var intervalor = setInterval(function() {
             self.obtener_cantidad()
             clearInterval(intervalor);
-        }, 33000);
+        }, 44000);
 
     },
     click_handler: function(){
