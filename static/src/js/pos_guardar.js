@@ -692,25 +692,29 @@ screens.define_action_button({
 
 var _super_posmodel = models.PosModel.prototype;
 models.PosModel = models.PosModel.extend({
-  initialize: function(session, attributes) {
-    _super_posmodel.initialize.apply(this,arguments);
-    this.ordenes_guardadas = {};
-  },
-  load_orders: function(){
-    _super_posmodel.add_new_order.apply(this);
-    var self = this;
-    var intervalor = setInterval(function() {
-        self.obtener_cantidad();
-        clearInterval(intervalor);
-    }, 30000);
-  },
+    initialize: function(session, attributes) {
+      _super_posmodel.initialize.apply(this,arguments);
+      this.ordenes_guardadas = {};
+    },
+    load_orders: function(){
+      _super_posmodel.add_new_order.apply(this);
+      var self = this;
+      self.obtener_ordenes_guardadas();
+    },
+    obtener_ordenes_guardadas: function(){
+        var self = this;
+        var intervalor = setInterval(function() {
+            self.obtener_cantidad();
+            clearInterval(intervalor);
+        }, 30000);
+    },
     obtener_cantidad: function(){
         var self = this;
         console.log(self)
         rpc.query({
                 model: 'pos.order',
                 method: 'buscar_pedidos',
-                args: [[],[[['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
+                args: [[],[[['session_id','=',self.config.session_save_order[0]],['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
             })
             .then(function (ordenes){
                 console.log('ordenes')
@@ -720,9 +724,9 @@ models.PosModel = models.PosModel.extend({
                     for (var i = 0; i < ordenes.length; i++){
                         if (ordenes[i].table_id[0] in self.ordenes_guardadas){
                             self.ordenes_guardadas[ordenes[i].table_id[0]]['clientes'] += ordenes[i].customer_count;
-                            self.ordenes_guardadas[ordenes[i].table_id[0]]['ordenes'] = ordenes.length;
+                            self.ordenes_guardadas[ordenes[i].table_id[0]]['ordenes'] += 1;
                         }else{
-                            self.ordenes_guardadas[ordenes[i].table_id[0]] ={'clientes': ordenes[i].customer_count,'ordenes': ordenes.length}
+                            self.ordenes_guardadas[ordenes[i].table_id[0]] ={'clientes': ordenes[i].customer_count,'ordenes': 1}
                         }
                     }
 
@@ -730,7 +734,7 @@ models.PosModel = models.PosModel.extend({
             })
             .always(function (){
                 console.log('render test')
-                self.load_orders();
+                self.obtener_ordenes_guardadas();
             });
     },
     transfer_order_to_different_table: function () {
