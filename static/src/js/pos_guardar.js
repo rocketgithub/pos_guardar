@@ -692,51 +692,51 @@ screens.define_action_button({
 
 var _super_posmodel = models.PosModel.prototype;
 models.PosModel = models.PosModel.extend({
-    initialize: function(session, attributes) {
-      _super_posmodel.initialize.apply(this,arguments);
-      this.ordenes_guardadas = {};
-    },
-    load_orders: function(){
-      _super_posmodel.add_new_order.apply(this);
-      var self = this;
-      self.obtener_ordenes_guardadas();
-    },
-    obtener_ordenes_guardadas: function(){
-        var self = this;
-        var intervalor = setInterval(function() {
-            self.obtener_cantidad();
-            clearInterval(intervalor);
-        }, 30000);
-    },
-    obtener_cantidad: function(){
-        var self = this;
-        console.log(self)
-        rpc.query({
-                model: 'pos.order',
-                method: 'buscar_pedidos',
-                args: [[],[[['session_id','=',self.config.session_save_order[0]],['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
-            })
-            .then(function (ordenes){
-                console.log('ordenes')
-                console.log(ordenes)
-                if (ordenes.length > 0 ){
-                    self.ordenes_guardadas = {}
-                    for (var i = 0; i < ordenes.length; i++){
-                        if (ordenes[i].table_id[0] in self.ordenes_guardadas){
-                            self.ordenes_guardadas[ordenes[i].table_id[0]]['clientes'] += ordenes[i].customer_count;
-                            self.ordenes_guardadas[ordenes[i].table_id[0]]['ordenes'] += 1;
-                        }else{
-                            self.ordenes_guardadas[ordenes[i].table_id[0]] ={'clientes': ordenes[i].customer_count,'ordenes': 1}
-                        }
-                    }
-
-                }
-            })
-            .always(function (){
-                console.log('render test')
-                self.obtener_ordenes_guardadas();
-            });
-    },
+    // initialize: function(session, attributes) {
+    //   _super_posmodel.initialize.apply(this,arguments);
+    //   this.ordenes_guardadas = {};
+    // },
+    // load_orders: function(){
+    //   _super_posmodel.add_new_order.apply(this);
+    //   var self = this;
+    //   self.obtener_ordenes_guardadas();
+    // },
+    // obtener_ordenes_guardadas: function(){
+    //     var self = this;
+    //     var intervalor = setInterval(function() {
+    //         self.obtener_cantidad();
+    //         clearInterval(intervalor);
+    //     }, 60000);
+    // },
+    // obtener_cantidad: function(){
+    //     var self = this;
+    //     console.log(self)
+    //     rpc.query({
+    //             model: 'pos.order',
+    //             method: 'buscar_pedidos',
+    //             args: [[],[[['session_id','=',self.config.session_save_order[0]],['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
+    //         })
+    //         .then(function (ordenes){
+    //             console.log('ordenes')
+    //             console.log(ordenes)
+    //             if (ordenes.length > 0 ){
+    //                 self.ordenes_guardadas = {}
+    //                 for (var i = 0; i < ordenes.length; i++){
+    //                     if (ordenes[i].table_id[0] in self.ordenes_guardadas){
+    //                         self.ordenes_guardadas[ordenes[i].table_id[0]]['clientes'] += ordenes[i].customer_count;
+    //                         self.ordenes_guardadas[ordenes[i].table_id[0]]['ordenes'] += 1;
+    //                     }else{
+    //                         self.ordenes_guardadas[ordenes[i].table_id[0]] ={'clientes': ordenes[i].customer_count,'ordenes': 1}
+    //                     }
+    //                 }
+    //
+    //             }
+    //         })
+    //         .always(function (){
+    //             console.log('render test')
+    //             self.obtener_ordenes_guardadas();
+    //         });
+    // },
     transfer_order_to_different_table: function () {
         this.get_order().transferencia = true;
         this.order_to_transfer_to_different_table = this.get_order();
@@ -864,27 +864,37 @@ models.Order = models.Order.extend({
 
 
 chrome.OrderSelectorWidget.include({
-  floor_button_click_handler: function(){
-    var pendiente_impresion = this.pos.get_order().hasChangesToPrint();
-    var gui = this.pos.gui;
-
-    if (pendiente_impresion == false){
-      if (this.pos.config.opcion_guardar_pedidos_mesas){
-          var orders = this.pos.get_order_list();
-          for (var i = 0; i < orders.length; i++) {
-              this.pos.set_order(orders[i]);
-              guardar_orden(this, false);
-          }
-      }
-    }
-    else {
-      gui.show_popup('confirm',{
-          'title': 'Error',
-          'body': 'Pedidos pendientes de enviar',
-      });
-    }
-  },
-
+  // floor_button_click_handler: function(){
+  //   var pendiente_impresion = this.pos.get_order().hasChangesToPrint();
+  //   var gui = this.pos.gui;
+  //
+  //   if (pendiente_impresion == false){
+  //     if (this.pos.config.opcion_guardar_pedidos_mesas){
+  //         var orders = this.pos.get_order_list();
+  //         for (var i = 0; i < orders.length; i++) {
+  //             this.pos.set_order(orders[i]);
+  //             guardar_orden(this, false);
+  //         }
+  //     }
+  //   }
+  //   else {
+  //     gui.show_popup('confirm',{
+  //         'title': 'Error',
+  //         'body': 'Pedidos pendientes de enviar',
+  //     });
+  //   }
+  // },
+    floor_button_click_handler: function(){
+        if (this.pos.config.opcion_guardar_pedidos_mesas){
+            var orders = this.pos.get_order_list();
+            for (var i = 0; i < orders.length; i++) {
+                this.pos.set_order(orders[i]);
+                guardar_orden(this, false);
+            }
+            // this.pos.get_customer_count(this.table);
+            this.pos.set_table(null);
+        }
+    },
     floor_button_click_handler2: function(){
         var self = this;
 //        var order = this.pos.get_order();
@@ -1000,33 +1010,32 @@ chrome.OrderSelectorWidget.include({
 
 
 floors.TableWidget.include({
-    init: function(parent, options){
-        var self = this;
-        this._super(parent, options);
-        this.cantidad_ordenes = 0;
-        this.cantidad_clientes = 0;
-    },
-    obtener_cantidad: function(){
-      var self = this;
-      if (Object.keys(self.pos.ordenes_guardadas).length > 0){
-          if (self.table.id in self.pos.ordenes_guardadas){
-              self.cantidad_ordenes = self.pos.ordenes_guardadas[self.table.id]['ordenes'];
-              self.cantidad_clientes = self.pos.ordenes_guardadas[self.table.id]['clientes']
-              self.renderElement();
-          }
-
-      }
-      self.renderElement();
-    },
-    renderElement: function(){
-        var self = this;
-        this._super();
-        var intervalor = setInterval(function() {
-            self.obtener_cantidad()
-            clearInterval(intervalor);
-        }, 44000);
-
-    },
+    // init: function(parent, options){
+    //     var self = this;
+    //     this._super(parent, options);
+    //     this.cantidad_ordenes = 0;
+    //     this.cantidad_clientes = 0;
+    // },
+    // obtener_cantidad: function(){
+    //   var self = this;
+    //   if (Object.keys(self.pos.ordenes_guardadas).length > 0){
+    //       if (self.table.id in self.pos.ordenes_guardadas){
+    //           self.cantidad_ordenes = self.pos.ordenes_guardadas[self.table.id]['ordenes'];
+    //           self.cantidad_clientes = self.pos.ordenes_guardadas[self.table.id]['clientes']
+    //       }
+    //
+    //   }
+    //   self.renderElement();
+    // },
+    // renderElement: function(){
+    //     var self = this;
+    //     this._super();
+    //     var intervalor = setInterval(function() {
+    //         self.obtener_cantidad()
+    //         clearInterval(intervalor);
+    //     }, 70000);
+    //
+    // },
     click_handler: function(){
         this._super();
         var self = this;
