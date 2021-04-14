@@ -19,7 +19,7 @@
         </div>
     </t>
 
-    <t t-extend="TableWidget">
+    <!-- <t t-extend="TableWidget">
         <t t-jquery='.table' t-operation='replace'>
 
             <div class='table' t-att-style='widget.table_style_str()'>
@@ -38,7 +38,7 @@
                 <span t-att-class='"customer-count " + (widget.notifications.printing ? "notify-printing":"") + (widget.notifications.skipped ? "notify-skipped" : "")'><t t-esc='widget.cantidad_clientes'/></span>
             </div>
         </t>
-    </t>
+    </t> -->
 
 
 </templates>
