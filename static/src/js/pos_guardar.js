@@ -286,7 +286,7 @@ function guardar_orden(obj, boton_guardar) {
                         'user_id': obj.pos.get_cashier().id,
                         'customer_count': order.get_customer_count(),
                         'employee_id': obj.pos.get_empleado().id,
-                        'vendedor_id': obj.pos.get_vendedor().id,
+                        'vendedor_id': obj.pos.vendedor,
                         'table_id': order.table.id,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
@@ -324,7 +324,7 @@ function guardar_orden(obj, boton_guardar) {
                     'partner_id': order.get_client().id,
                     'user_id': obj.pos.get_cashier().id,
                     'empleado_id': obj.pos.get_empleado().id,
-                    'vendedor_id': obj.pos.get_vendedor().id,
+                    'vendedor_id': obj.pos.vendedor,
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
