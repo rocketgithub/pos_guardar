@@ -706,7 +706,7 @@ models.PosModel = models.PosModel.extend({
         var intervalor = setInterval(function() {
             self.obtener_cantidad();
             clearInterval(intervalor);
-        }, 60000);
+        }, 300000);
     },
     obtener_cantidad: function(){
         var self = this;
@@ -1033,7 +1033,7 @@ floors.TableWidget.include({
         var intervalor = setInterval(function() {
             self.obtener_cantidad()
             clearInterval(intervalor);
-        }, 70000);
+        }, 318000);
 
     },
     click_handler: function(){
