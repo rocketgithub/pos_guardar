@@ -37,9 +37,15 @@ class PosOrder(models.Model):
         if restaurante[0]:
             for order in orders:
                 if 'empleado_id' in orden[0]:
-                    order.sudo().write({'partner_id': orden[0]['partner_id'], 'employee_id': orden[0]['empleado_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                    if 'pricelist_id' in orden[0]:
+                        order.sudo().write({'partner_id': orden[0]['partner_id'], 'pricelist_id': orden[0]['pricelist_id'] ,'employee_id': orden[0]['empleado_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                    else:
+                        order.sudo().write({'partner_id': orden[0]['partner_id'], 'employee_id': orden[0]['empleado_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
                 else:
-                    order.sudo().write({'partner_id': orden[0]['partner_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                    if 'pricelist_id' in orden[0]:
+                        order.sudo().write({'partner_id': orden[0]['partner_id'], 'pricelist_id': orden[0]['pricelist_id'] ,'employee_id': orden[0]['empleado_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
+                    else:
+                        order.sudo().write({'partner_id': orden[0]['partner_id'],'user_id':orden[0]['user_id'],'customer_count': orden[0]['customer_count']})
 
         else:
             for order in orders:
