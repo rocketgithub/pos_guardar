@@ -288,6 +288,7 @@ function guardar_orden(obj, boton_guardar) {
                         'employee_id': obj.pos.get_empleado().id,
                         'vendedor_id': obj.pos.vendedor,
                         'table_id': order.table.id,
+                        'pricelist_id': order.pricelist.id,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
                     }
@@ -296,6 +297,7 @@ function guardar_orden(obj, boton_guardar) {
                         'partner_id': order.get_client().id,
                         'session_id': obj.pos.config.session_save_order[0],
                         'user_id': obj.pos.get_cashier().id,
+                        'pricelist_id': order.pricelist.id,
     //                    'pos_reference': order.name,
                         'company_id': obj.pos.config.company_id[0]
                     }
@@ -325,12 +327,14 @@ function guardar_orden(obj, boton_guardar) {
                     'user_id': obj.pos.get_cashier().id,
                     'empleado_id': obj.pos.get_empleado().id,
                     'vendedor_id': obj.pos.vendedor,
+                    'pricelist_id': order.pricelist.id,
 //                    'pos_reference': order.name,
                     'customer_count': order.get_customer_count()
                 }
             }else{
                 orden = {
                     'partner_id': order.get_client().id,
+                    'pricelist_id': order.pricelist.id,
 //                    'pos_reference': order.name,
                     'user_id': obj.pos.get_cashier().id
                 }
@@ -1098,7 +1102,7 @@ floors.TableWidget.include({
         rpc.query({
                 model: 'pos.order',
                 method: 'buscar_pedidos',
-                args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count','employee_id','vendedor_id']]],
+                args: [[],[[['table_id', '=', this.table.id], ['state', '=', 'draft'], ['pos_reference', 'not in', pos_reference_ids]]],[['id', 'partner_id', 'user_id', 'table_id', 'customer_count','employee_id','vendedor_id','pricelist_id']]],
             })
             .then(function (orders){
                 if (orders.length == 0) {
@@ -1157,6 +1161,11 @@ floors.TableWidget.include({
                                         o.set_client(db.get_partner_by_id(ordenes[order_id]['partner_id'][0]));
                                         o.set_order_id(ordenes[order_id].id);
                                         self.pos.set_order(o);
+                                        for (var j = 0; j < self.pos.pricelists.length; j++){
+                                            if (ordenes[order_id].pricelist_id[0] == self.pos.pricelists[j].id){
+                                                o.set_pricelist(self.pos.pricelists[j]);
+                                            }
+                                        }
                                         ordenes[order_id] = null;
 
 /*
