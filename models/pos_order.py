@@ -32,8 +32,7 @@ class PosOrder(models.Model):
         return True
 
     def actualizar_pedido(self,orden_id,orden,orderline,restaurante):
-        orders = self.env['pos.order'].search([['id', '=', orden_id[0]]])
-        logging.warn(restaurante)
+        orders = self.env['pos.order'].sudo().search([['id', '=', orden_id[0]]])
         if restaurante[0]:
             for order in orders:
                 if 'empleado_id' in orden[0]:
