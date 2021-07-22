@@ -703,7 +703,9 @@ models.PosModel = models.PosModel.extend({
     load_orders: function(){
       _super_posmodel.add_new_order.apply(this);
       var self = this;
-      self.obtener_ordenes_guardadas();
+      if (self.config.sincronizar_pedidos == true){
+          self.obtener_ordenes_guardadas();
+      }
     },
     obtener_ordenes_guardadas: function(){
         var self = this;
@@ -714,15 +716,12 @@ models.PosModel = models.PosModel.extend({
     },
     obtener_cantidad: function(){
         var self = this;
-        console.log(self)
         rpc.query({
                 model: 'pos.order',
                 method: 'buscar_pedidos',
                 args: [[],[[['session_id','=',self.config.session_save_order[0]],['state', '=', 'draft']]],[['id', 'customer_count','table_id']]],
             })
             .then(function (ordenes){
-                console.log('ordenes')
-                console.log(ordenes)
                 if (ordenes.length > 0 ){
                     self.ordenes_guardadas = {}
                     for (var i = 0; i < ordenes.length; i++){
@@ -737,7 +736,6 @@ models.PosModel = models.PosModel.extend({
                 }
             })
             .always(function (){
-                console.log('render test')
                 self.obtener_ordenes_guardadas();
             });
     },
@@ -1034,10 +1032,13 @@ floors.TableWidget.include({
     renderElement: function(){
         var self = this;
         this._super();
-        var intervalor = setInterval(function() {
-            self.obtener_cantidad()
-            clearInterval(intervalor);
-        }, 318000);
+        if (self.pos.config.sincronizar_pedidos == true){
+            var intervalor = setInterval(function() {
+                self.obtener_cantidad()
+                clearInterval(intervalor);
+            }, 318000);
+        }
+
 
     },
     click_handler: function(){
@@ -1244,7 +1245,6 @@ gui.Gui.include({
 
 screens.PaymentScreenWidget.include({
     finalize_validation: function(){
-        console.log('finalize_validation');
         this._super();
         var order = this.pos.get_order();
         if (!(order.get_order_id() == 0 || order.get_order_id() == null )) {
